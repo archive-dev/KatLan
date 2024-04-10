@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Pair;
 import org.cojen.maker.ClassMaker;
-import org.cojen.maker.MethodMaker;
+import org.cojen.maker.FieldMaker;
 import org.katarine.compiler.antlr4.KatLanLexer;
 import org.katarine.compiler.antlr4.KatLanParser;
 import org.katarine.compiler.visitors.*;
@@ -34,7 +34,7 @@ public class Compiler {
         imports.put("double", double.class);
     }
 
-    public static final HashMap<String, Pair<Object, Object>> vars = new HashMap<>();
+    public static final HashMap<String, FieldMaker> fields = new HashMap<>();
     public static String package_;
 
     public static void main(String[] args) throws IOException {
@@ -51,37 +51,38 @@ public class Compiler {
         package_ = new KLPackageVisitor().visit(pc);
         imports.putAll(new KLImportVisitor().visit(ibc));
         ParserRuleContext r = new KLClassVisitor().visitClass(cc);
-        String className = args[0].substring(args[0].lastIndexOf('.') + 1);
+        String className = args[0].substring(0, args[0].lastIndexOf('.'));
         ClassMaker cm;
 
         if (r instanceof KatLanParser.ClassDefContext) {
             System.out.println("compiling class");
-            cm = ClassMaker.beginExternal(className).public_();
-            vars.putAll( new KLVarsVisitor().visitClassDef((KatLanParser.ClassDefContext) r));
-            if (((KatLanParser.ClassDefContext) r).ABSTRACT_KEYWORD() != null) cm=cm.abstract_();
+            className = ((KatLanParser.ClassDefContext) r).name(0).getText();
+            cm = ClassMaker.beginExternal(className).extend(Object.class).public_();
+            imports.put(cm.name(), cm);
+            cm.addConstructor().public_();
+            fields.putAll( new KLFieldsVisitor(cm).visitClassDef((KatLanParser.ClassDefContext) r));
+            if (((KatLanParser.ClassDefContext) r).ABSTRACT_KEYWORD() != null) cm.abstract_();
 
-            for (Map.Entry<String, Pair<Object, Object>> entry : vars.entrySet()) {
-                String name = entry.getKey();
-                Pair<Object, Object> tv = entry.getValue();
-                cm.addField(tv.a, name);// .init(tv.b);
-            }
-
-            cm = new KLMethodVisitor(cm).visitClassDef((KatLanParser.ClassDefContext) r);
+            new KLMethodDefVisitor(cm).visitClassDef((KatLanParser.ClassDefContext) r);
         } else if (r instanceof KatLanParser.UnnamedClassDefContext) {
             System.out.println("compiling unnamed class");
             cm = ClassMaker.beginExternal(className).public_();
-            vars.putAll( new KLVarsVisitor().visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
+            imports.put(cm.name(), cm);
+            cm.addConstructor();
+            fields.putAll( new KLFieldsVisitor(cm).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
 
+            new KLMethodDefVisitor(cm).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r);
         } else {
             System.out.println("compiling interface");
-            className = ((KatLanParser.InterfaceDefContext) r).NAME(0).getText();
+            className = ((KatLanParser.InterfaceDefContext) r).name(0).getText();
             cm = ClassMaker.beginExternal(className).public_().interface_();
-            vars.putAll( new KLVarsVisitor().visitInterfaceDef((KatLanParser.InterfaceDefContext) r));
-            cm=cm.interface_();
-            cm = new KLMethodVisitor(cm).visitInterfaceDef((KatLanParser.InterfaceDefContext) r);
+            imports.put(cm.name(), cm);
+            fields.putAll(new KLFieldsVisitor(cm).visitInterfaceDef((KatLanParser.InterfaceDefContext) r));
+            cm.interface_();
+            new KLMethodDefVisitor(cm).visitInterfaceDef((KatLanParser.InterfaceDefContext) r);
         }
 
-        File output = new File(args[0].substring(0, args[0].lastIndexOf('.')) + ".class");
+        File output = new File(cm.name() + ".class");
         try (FileOutputStream fos = new FileOutputStream(output)) {
             cm.finishTo(fos);
         }

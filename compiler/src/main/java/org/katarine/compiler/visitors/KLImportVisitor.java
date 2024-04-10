@@ -12,9 +12,9 @@ public class KLImportVisitor extends KatLanBaseVisitor<HashMap<String, Object>> 
 
         ctx.importStatement().forEach(is -> {
             if (is.AS_KEYWORD()!=null) {
-                map.put(is.NAME(1).getText(), is.NAME(0).getText());
+                map.put(is.name(1).getText(), is.name(0).getText());
             } else {
-                map.put(is.NAME(0).getText(), is.NAME(0).getText());
+                map.put(is.name(0).getText().substring(is.name(0).getText().lastIndexOf('.')+1), is.name(0).getText());
             }
         });
         return map;

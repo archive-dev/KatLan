@@ -6,6 +6,6 @@ import org.katarine.compiler.antlr4.KatLanParser;
 public class KLPackageVisitor extends KatLanBaseVisitor<String> {
     @Override
     public String visitPackage(KatLanParser.PackageContext ctx) {
-        return ctx.NAME().getText();
+        return ctx.name().getText();
     }
 }

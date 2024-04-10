@@ -3,105 +3,129 @@ grammar KatLan;
 
 class: package? importBlock (classDef | interfaceDef | unnamedClassDef);
 
-package: 'package' NAME ENDLINE+;
+package: 'package' name ENDLINE+;
 importBlock: (importStatement)*;
-importStatement: 'import' NAME ('as' NAME)? ENDLINE+;
+importStatement: 'import' name ('as' name)? ENDLINE+;
 
-unnamedClassDef: ('extends' NAME (',' NAME)* ENDLINE+)? classBlock? block?;
+unnamedClassDef: ('extends' name (',' name)* ENDLINE+)? classBlock? block?;
 
-classDef: access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) NAME (':' NAME (',' NAME)*)?
-        '{'ENDLINE* classBlock? ENDLINE* '}';
-interfaceDef: access INTERFACE_KEYWORD NAME (':' NAME (',' NAME)*)?
+classDef: access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (':' name (',' name)*)?
+        '{' ENDLINE* classBlock? ENDLINE* '}';
+interfaceDef: access INTERFACE_KEYWORD name (':' name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
 
 classBlock: (
     (var |
-    methodDef)
+    methodDef |
+    constructorDef)
     ENDLINE+
     )+
 ;
 
-block: ((varDef | constDef | varAssignment | methodCall | statement) (ENDLINE+ | EOF))*;
+block: lineBlock*;
 lineBlock: ((varDef | constDef | varAssignment | methodCall | statement) (ENDLINE+ | EOF));
 
-value: bool | expression | arithmeticExpression | NAME | STRING_VAL | ('@' NAME);
+value: bool | expression | arithmeticExpression | name | STRING_VAL | anyType | arrayAccess;
 bool: TRUE | FALSE;
 
-varAssignment: (NAME '=' value) | incrExpression;
+varAssignment: (varAccess '=' value) | incrExpression;
 
-methodDef: access ABSTRACT_KEYWORD? 'def' NAME '(' parameters? ')' ':' type '{' ENDLINE* block ENDLINE* '}';
+varAccess : NAME0 ('.' varAccess)?;
+arrayAccess: varAccess arrayAccess0+;
+arrayAccess0: ('[' arithmeticExpression ']');
+
+methodDef: access ABSTRACT_KEYWORD? 'def' name '(' parameters? ')' ':' type '{' ENDLINE* block ENDLINE* '}';
+constructorDef: access 'def' name '(' parameters? ')' '{' block '}';
 parameters: (parameter) (',' parameter)*;
-parameter: NAME ':' type ('=' value)?;
+parameter: name ':' type ('=' value)?;
 
 var: varDef | constDef;
 
 constDef: access (constDef0 | constDef1);
-constDef0: 'const' NAME ':' type '=' value;
-constDef1: 'const' (NAME '=' value) (',' NAME '=' value)+ ':' type;
+constDef0: 'const' name ':' type '=' value;
+constDef1: 'const' (name '=' value) (',' name '=' value)+ ':' type;
 
 varDef: access (varDef0 | varDef1);
-varDef0: 'var' NAME ':' type ('=' value)? ;
-varDef1: 'var' NAME (',' NAME)+ ':' type  ;
+varDef0: 'var' name ':' type ('=' value)? ;
+varDef1: 'var' name (',' name)+ ':' type  ;
 
-statement: ifStatement | switchStatement | foriLoop | foriLoop0;
+statement: ifStatement | switchStatement | foriLoop | foriLoop0 | returnStatement | whileLoopStatement | tryCatchFinally;
+
+returnStatement: 'return' value;
 
 switchStatement: 'switch' '(' expression ')' ENDLINE*
     '{' ENDLINE*
         ((expression | 'default') '->' (('{' block '}') | lineBlock) ENDLINE*)+
     '}';
 
-ifStatement: 'if' '(' expression ')' ENDLINE* (('{' block '}') | lineBlock);
+tryCatchFinally: 'try' (varAssignment)? (('{' ENDLINE* block ENDLINE* '}') | lineBlock) ENDLINE*
+                 'catch' '(' parameter ')' (('{' ENDLINE* block ENDLINE* '}') | lineBlock) ENDLINE*
+                 ('finally' (('{' ENDLINE* block ENDLINE* '}') | lineBlock) ENDLINE)?;
 
-foriLoop: 'for' '(' varDef ENDLINE+ expression ENDLINE+ varAssignment')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
-foriLoop0: 'for' '(' NAME ':' type ',' value '..' value ')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
+ifStatement: 'if' '(' expression ')' ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
+whileLoopStatement: 'while' '(' expression ')' ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
+
+foriLoop: 'for' '(' varDef? ENDLINE expression? ENDLINE varAssignment?')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
+foriLoop0: 'for' '(' name ':' type ',' value '..' value ')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
 
 access: (PUBLIC | PROTECTED | PRIVATE)? STATIC? FINAL?;
 
-type: anyType | linkType;
-anyType: DOT_NAME | NAME | primitiveType;
+type: (anyType | linkType) ('['']')*;
+anyType: name | primitiveType;
 linkType: '@' (
     anyType |
     CLASS_KEYWORD |
     INTERFACE_KEYWORD |
     ENUM_KEYWORD
 );
+
 primitiveType:
-    'str'      ('['']')* |
-    'bool'     ('['']')* |
-    'int'      ('['']')* |
-    'float'    ('['']')* |
-    'double'   ('['']')* |
-    'long'     ('['']')* |
-    'short'    ('['']')* |
-    'byte'     ('['']')* |
-    'obj'      ('['']')* |
+    'str'      |
+    'bool'     |
+    'int'      |
+    'float'    |
+    'double'   |
+    'long'     |
+    'short'    |
+    'byte'     |
+    'obj'      |
+    nullType
+    ;
+
+nullType:
     'void'               |
     'null'
     ;
 
-arguments: (NAME | value) ((',' (NAME)) | (',' value))*;
+arguments: argument (',' argument)*;
+argument : (name | value);
 
-methodCall0: NAME '(' arguments? ')';
+methodCall0: varAccess '(' arguments? ')';
 methodCall : methodCall0 ('.' methodCall0)*;
 
-expression       : logicalOr | primaryExpresion                                ;
-logicalOr        : logicalAnd (OR  (logicalAnd | logicalOr)) ?                 ;
-logicalAnd       : logicalXor (AND (logicalXor | logicalAnd))?                 ;
-logicalXor       : logicalNot (XOR (logicalNot | logicalXor))?                 ;
-logicalNot       : NOT? primaryExpresion                                       ;
-primaryExpresion : bool | methodCall | NAME | ( '(' expression ')' )           ;
+constructorCall: 'new' name '(' arguments? ')';
+
+expression       : primaryExpresion  | logicalOr                                                         ;
+logicalOr        : (primaryExpresion | logicalAnd) (OR  (primaryExpresion | logicalAnd | logicalOr ))?   ;
+logicalAnd       : (primaryExpresion | logicalXor) (AND (primaryExpresion | logicalXor | logicalAnd))?   ;
+logicalXor       : (primaryExpresion | logicalNot) (XOR (primaryExpresion | logicalNot | logicalXor))?   ;
+logicalNot       : NOT? primaryExpresion                                                                 ;
+primaryExpresion : bool | methodCall | name | varAccess | ( '(' expression ')' ) | constructorCall       ;
 
 
-arithmeticExpression: addSubExpression;
+arithmeticExpression: numberExpression | addSubExpression                                                             ;
 addSubExpression : modDivExpression ((PLUS | MINUS)      (numberExpression | addSubExpression))?                      ;
 modDivExpression : mulDivExpression ((MOD | DIV)         (numberExpression | modDivExpression))?                      ;
 mulDivExpression : powerExpression  ((MULTIPLY | DIVIDE) (numberExpression | mulDivExpression))?                      ;
 powerExpression  : numberExpression (POWER               (numberExpression | powerExpression)) ?                      ;
-numberExpression : (MINUS|PLUS)? (methodCall | NAME | NUMERIC_VALUE | ('(' arithmeticExpression ')')) | incrExpression;
+numberExpression : (MINUS|PLUS)? (methodCall | name | NUMERIC_VALUE | ('(' arithmeticExpression ')')) | incrExpression;
 
-incrExpression   : ((PLUS PLUS) | (MINUS MINUS)) NAME |
-                   NAME ((PLUS PLUS) | (MINUS MINUS))
+incrExpression   : (((PLUS PLUS) | (MINUS MINUS)) (name | varAccess)) |
+                   ((name | varAccess) ((PLUS PLUS) | (MINUS MINUS)))
                  ;
+
+name      : dot_name | NAME0   ;
+dot_name  : NAME0 ('.' NAME0)+ ;
 
 AS_KEYWORD    : 'as'    ;
 FOR_KEYWORD   : 'for'   ;
@@ -150,8 +174,6 @@ ENUM_KEYWORD      : 'enum'     ;
 NUMERIC_VALUE: FLOAT_VAL | INT_VAL            ;
 INT_VAL   : [0-9]+                            ;
 FLOAT_VAL : INT_VAL('.'INT_VAL)? ('f' | 'd')? ;
-NAME      : DOT_NAME | NAME0                  ;
-DOT_NAME  : NAME0 ('.' NAME0)+                ;
 NAME0      : ([a-zA-Z]+ [0-9]*)+              ;
 STRING_VAL: ('"' .*? '"') | ('\'' .*? '\'')   ;
 
