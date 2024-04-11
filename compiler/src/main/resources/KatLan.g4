@@ -98,19 +98,19 @@ nullType:
     ;
 
 arguments: argument (',' argument)*;
-argument : (name | value);
+argument : value;
 
-methodCall0: varAccess '(' arguments? ')';
+methodCall0: varAccess '.' NAME0 '(' arguments? ')';
 methodCall : methodCall0 ('.' methodCall0)*;
 
 constructorCall: 'new' name '(' arguments? ')';
 
-expression       : primaryExpresion  | logicalOr                                                         ;
-logicalOr        : (primaryExpresion | logicalAnd) (OR  (primaryExpresion | logicalAnd | logicalOr ))?   ;
-logicalAnd       : (primaryExpresion | logicalXor) (AND (primaryExpresion | logicalXor | logicalAnd))?   ;
-logicalXor       : (primaryExpresion | logicalNot) (XOR (primaryExpresion | logicalNot | logicalXor))?   ;
-logicalNot       : NOT? primaryExpresion                                                                 ;
-primaryExpresion : bool | methodCall | name | varAccess | ( '(' expression ')' ) | constructorCall       ;
+expression       : primaryExpresion  | logicalOr                                                                      ;
+logicalOr        : (primaryExpresion | logicalAnd) (OR  (primaryExpresion | logicalAnd | logicalOr ))?                ;
+logicalAnd       : (primaryExpresion | logicalXor) (AND (primaryExpresion | logicalXor | logicalAnd))?                ;
+logicalXor       : (primaryExpresion | logicalNot) (XOR (primaryExpresion | logicalNot | logicalXor))?                ;
+logicalNot       : NOT? primaryExpresion                                                                              ;
+primaryExpresion : bool | methodCall | name | varAccess | ( '(' expression ')' ) | constructorCall | arrayAccess      ;
 
 
 arithmeticExpression: numberExpression | addSubExpression                                                             ;
@@ -118,7 +118,7 @@ addSubExpression : modDivExpression ((PLUS | MINUS)      (numberExpression | add
 modDivExpression : mulDivExpression ((MOD | DIV)         (numberExpression | modDivExpression))?                      ;
 mulDivExpression : powerExpression  ((MULTIPLY | DIVIDE) (numberExpression | mulDivExpression))?                      ;
 powerExpression  : numberExpression (POWER               (numberExpression | powerExpression)) ?                      ;
-numberExpression : (MINUS|PLUS)? (methodCall | name | NUMERIC_VALUE | ('(' arithmeticExpression ')')) | incrExpression;
+numberExpression : (MINUS|PLUS)? (methodCall | name | numeric_value | ('(' arithmeticExpression ')')) | incrExpression;
 
 incrExpression   : (((PLUS PLUS) | (MINUS MINUS)) (name | varAccess)) |
                    ((name | varAccess) ((PLUS PLUS) | (MINUS MINUS)))
@@ -126,6 +126,9 @@ incrExpression   : (((PLUS PLUS) | (MINUS MINUS)) (name | varAccess)) |
 
 name      : dot_name | NAME0   ;
 dot_name  : NAME0 ('.' NAME0)+ ;
+
+
+numeric_value: FLOAT_VAL | INT_VAL ;
 
 AS_KEYWORD    : 'as'    ;
 FOR_KEYWORD   : 'for'   ;
@@ -171,10 +174,9 @@ ABSTRACT_KEYWORD  : 'abstract' ;
 INTERFACE_KEYWORD : 'interface';
 ENUM_KEYWORD      : 'enum'     ;
 
-NUMERIC_VALUE: FLOAT_VAL | INT_VAL            ;
 INT_VAL   : [0-9]+                            ;
 FLOAT_VAL : INT_VAL('.'INT_VAL)? ('f' | 'd')? ;
-NAME0      : ([a-zA-Z]+ [0-9]*)+              ;
+NAME0     : ([a-zA-Z]+ [0-9]*)+               ;
 STRING_VAL: ('"' .*? '"') | ('\'' .*? '\'')   ;
 
 ENDLINE: [\n;]                                      ;
