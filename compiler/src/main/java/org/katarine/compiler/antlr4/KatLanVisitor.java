@@ -376,4 +376,10 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDot_name(KatLanParser.Dot_nameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#numeric_value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNumeric_value(KatLanParser.Numeric_valueContext ctx);
 }

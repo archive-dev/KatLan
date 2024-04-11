@@ -439,4 +439,11 @@ public class KatLanBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitDot_name(KatLanParser.Dot_nameContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitNumeric_value(KatLanParser.Numeric_valueContext ctx) { return visitChildren(ctx); }
 }

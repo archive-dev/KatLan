@@ -617,4 +617,14 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDot_name(KatLanParser.Dot_nameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#numeric_value}.
+	 * @param ctx the parse tree
+	 */
+	void enterNumeric_value(KatLanParser.Numeric_valueContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#numeric_value}.
+	 * @param ctx the parse tree
+	 */
+	void exitNumeric_value(KatLanParser.Numeric_valueContext ctx);
 }

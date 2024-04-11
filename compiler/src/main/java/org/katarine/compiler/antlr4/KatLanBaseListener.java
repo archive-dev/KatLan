@@ -744,6 +744,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDot_name(KatLanParser.Dot_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterNumeric_value(KatLanParser.Numeric_valueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNumeric_value(KatLanParser.Numeric_valueContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
