@@ -85,6 +85,10 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
             if (vd.access().STATIC() != null)    fm.static_();
             if (vd.access().FINAL() != null)     fm.final_();
 
+            if (vd0.value()!=null) {
+
+            }
+
             set.add(new Pair<>(vName, fm));
         } else {
             var vType = Compiler.imports.get(vd1.type().getText());
