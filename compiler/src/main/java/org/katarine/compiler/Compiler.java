@@ -69,7 +69,7 @@ public class Compiler {
             cm = ClassMaker.beginExternal(className).public_();
             imports.put(cm.name(), cm);
             cm.addConstructor();
-            fields.putAll( new KLFieldsVisitor(cm).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
+            fields.putAll(new KLFieldsVisitor(cm).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
 
             new KLMethodDefVisitor(cm).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r);
         } else {
