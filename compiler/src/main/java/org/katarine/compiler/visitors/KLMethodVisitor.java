@@ -1,28 +1,45 @@
 package org.katarine.compiler.visitors;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.cojen.maker.Label;
 import org.cojen.maker.MethodMaker;
 import org.cojen.maker.Variable;
-import org.jetbrains.annotations.Nullable;
 import org.katarine.compiler.Compiler;
 import org.katarine.compiler.antlr4.KatLanBaseVisitor;
 import org.katarine.compiler.antlr4.KatLanParser;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
 public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
     private MethodMaker mm;
     final HashMap<String, Integer> vars = new HashMap<>(); // <name, index>
     final HashMap<String, Variable> localVars = new HashMap<>();
 
+    private final VariableGetter vg;
+
     public KLMethodVisitor(MethodMaker mm, HashMap<String, Integer> vars) {
         this.mm = mm;
         this.vars.putAll(vars);
+        vg = new VariableGetter(mm, this.vars, this.localVars);
+    }
+
+    @Override
+    public Variable visitBlock(KatLanParser.BlockContext ctx) {
+        visitLines(ctx.lineBlock());
+        return null;
+    }
+
+    public void visitLines(List<KatLanParser.LineBlockContext> ctx) {
+        if (ctx!=null) {
+            ctx.forEach(this::visitLineBlock);
+        }
     }
 
     @Override
     public Variable visitLineBlock(KatLanParser.LineBlockContext ctx) {
         System.out.println("LB");
+//        System.out.println(ctx.parent.parent.getClass());
         for (ParseTree c : ctx.children) {
             visit(c);
         }
@@ -30,154 +47,173 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
     }
 
     @Override
-    public Variable visitBlock(KatLanParser.BlockContext ctx) {
-        System.out.println("VB");
-        if (ctx.children==null) return null;
-        for (var c : ctx.children) {
-            if (c instanceof KatLanParser.LineBlockContext lbc)
-                visitLineBlock(lbc);
+    public Variable visitMethodCall(KatLanParser.MethodCallContext ctx) {
+        return vg.visitMethodCall(ctx);
+//        return mm.var("java.lang.System").field("out").invoke("println", "hi");
+    }
+
+    @Override
+    public Variable visitStatement(KatLanParser.StatementContext ctx) {
+        if (ctx.returnStatement()!=null) {
+            return visitReturnStatement(ctx.returnStatement());
+        } else if (ctx.ifStatement()!=null) {
+            return visitIfStatement(ctx.ifStatement());
+        } else if (ctx.whileLoopStatement()!=null) {
+            return visitWhileLoopStatement(ctx.whileLoopStatement());
         }
+        return super.visitStatement(ctx);
+    }
+
+    @Override
+    public Variable visitVarAssignment(KatLanParser.VarAssignmentContext ctx) {
+        if (ctx.varAccess()!=null) {
+            var v = vg.visitVarAccess(ctx.varAccess());
+
+            v.set(vg.visitValue(ctx.value()));
+        } else if (ctx.incrExpression()!=null) {
+            var v = vg.visitIncrExpression(ctx.incrExpression());
+        }
+
         return null;
     }
 
     @Override
-    public Variable visitVarDef(KatLanParser.VarDefContext ctx) {
-        var vd1 = ctx.varDef1();
+    public Variable visitWhileLoopStatement(KatLanParser.WhileLoopStatementContext ctx) {
+        Label start = mm.label();
+        Label end = mm.label();
 
-        if (vd1!=null) {
-            for (var vn : new VarDef1Visitor().visit(vd1)) {
-                localVars.put(vn.name(), vn);
-            }
-            return null;
-        }
 
-        var v = new VarVisitor().visitVarDef0(ctx.varDef0());
-        localVars.put(v.name(), v);
+        start.here();
+        Variable v = vg.visitExpression(ctx.expression());
 
-        return v;
+        v.ifNe(true, end);
+
+        if (ctx.lineBlock()!=null)
+            visitLineBlock(ctx.lineBlock());
+        else
+            visitBlock(ctx.block());
+
+        start.goto_();
+
+        end.here();
+
+        return null;
     }
 
-    private class VarVisitor extends KatLanBaseVisitor<Variable> {
-        @Override
-        public Variable visitVarDef0(KatLanParser.VarDef0Context vd0) {
-            Variable v = null;
-            if (vd0!=null) {
-                v = mm.var(getType(vd0.type().getText())).name(vd0.name().getText());
-                if (vd0.value()!=null)
-                    visitValue(vd0.value(), getType(vd0.type().getText()), v);
-            }
+    @Override
+    public Variable visitIfStatement(KatLanParser.IfStatementContext ctx) {
+        var ctx2 = ctx.ifStatement0(0);
+        var v1 = vg.visitExpression(ctx.expression());
 
+        if (ctx.ELSE_KEYWORD()!=null) {
+            v1.ifEq(true, () -> {
+            visitIfStatement0(ctx2);
+
+            }, () -> {
+                visitIfStatement0(ctx.ifStatement0(1));
+            });
+        } else {
+            v1.ifNe(true, () -> {
+                visitIfStatement0(ctx2);
+            });
+        }
+
+        return null;
+    }
+
+    @Override
+    public Variable visitIfStatement0(KatLanParser.IfStatement0Context ctx) {
+        if (ctx.lineBlock()!=null)
+            visitLineBlock(ctx.lineBlock());
+        else
+            visitBlock(ctx.block());
+
+        return null;
+    }
+
+    @Override
+    public Variable visitReturnStatement(KatLanParser.ReturnStatementContext ctx) {
+        if (ctx.value() != null)
+            mm.return_(vg.visitValue(ctx.value()));
+        else mm.return_();
+
+        return super.visitReturnStatement(ctx);
+    }
+
+    @Override
+    public Variable visitVar(KatLanParser.VarContext ctx) {
+        //System.out.println(ctx.getText());
+        if (ctx.constDef()!=null) {
+            return visitConstDef(ctx.constDef());
+        } else {
+            Variable v = visitVarDef(ctx.varDef());
+            //System.out.println("0 " + v.classType());
             return v;
         }
-
-        public Variable visitValue(KatLanParser.ValueContext ctx, Object type, Variable v) {
-//        System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
-            if (ctx.bool()!=null) {
-//                System.out.println(ctx.getText());
-                v.set(mm.var(boolean.class).set(Boolean.parseBoolean(ctx.bool().getText())));
-            } else if (ctx.STRING_VAL()!=null) {
-//                System.out.println("STRVAL");
-                v.set(mm.var(String.class).set(ctx.STRING_VAL().getText().substring(1, ctx.STRING_VAL().getText().length()-1)));
-            } else if (ctx.expression()!=null) {
-                v.set(visitExpression(ctx.expression()));
-            } else if (ctx.name()!=null) {
-                try {
-                    v.set(mm.this_().field(ctx.name().getText()));
-                } catch (IllegalStateException ignored) {
-                    try {
-                        v.set(mm.param(vars.get(ctx.name().getText())));
-                    } catch (IllegalStateException ignored2) {
-                        v.set(localVars.get(ctx.name().getText()));
-                    }
-                }
-            } else if (ctx.arrayAccess()!=null) {
-                var aa = ctx.arrayAccess();
-                v.set(visitVarAccess(aa.varAccess(), null));
-                for (KatLanParser.ArrayAccess0Context i : aa.arrayAccess0()) {
-                    v.set(v.aget(visitArithmeticExpression(i.arithmeticExpression())));
-                }
-            }
-
-
-            try {
-                return v;
-            } finally {
-//                System.out.println(ctx.getText() + " " + v.name() + " " + v.classType());
-            }
-        }
-
-
-        public Variable visitVarAccess(KatLanParser.VarAccessContext ctx, @Nullable Variable v) {
-            if (v == null) {
-                try {
-                    v = mm.this_().field(ctx.NAME0().getText());
-                } catch (IllegalStateException ignored) {
-                    v = mm.param(vars.get(ctx.NAME0().getText()));
-                }
-            } else {
-                v = v.field(ctx.NAME0().getText());
-            }
-
-            if (ctx.varAccess()==null)
-                return v;
-            else return visitVarAccess(ctx.varAccess(), v);
-        }
-    }
-
-    private class VarDef1Visitor extends KatLanBaseVisitor<List<Variable>> {
-        @Override
-        public List<Variable> visitVarDef1(KatLanParser.VarDef1Context vd1) {
-            List<Variable> vars = new ArrayList<>();
-
-            for (var n : vd1.name()) {
-                vars.add(mm.var(getType(vd1.type().getText())).name(n.getText()));
-            }
-
-            return vars;
-        }
     }
 
     @Override
-    public Variable visitExpression(KatLanParser.ExpressionContext ctx) {
-        var pe = ctx.primaryExpresion();
+    public Variable visitConstDef(KatLanParser.ConstDefContext ctx) {
         Variable v;
-        if (pe!=null) {
-            v = visitPrimaryExpresion(pe);
+        if (ctx.constDef0()!=null) {
+            v = visitConstDef0(ctx.constDef0());
         } else {
-            v = visitLogicalOr(ctx.logicalOr());
+            v = visitConstDef1(ctx.constDef1());
         }
 
         return v;
     }
 
     @Override
-    public Variable visitLogicalOr(KatLanParser.LogicalOrContext ctx) {
-//        System.out.println(ctx.primaryExpresion());
-        return super.visitLogicalOr(ctx);
+    public Variable visitConstDef0(KatLanParser.ConstDef0Context ctx) {
+        Variable v;
+        v = mm.var(getType(ctx.type().getText())).name(ctx.name().getText());
+
+        v.set(vg.visitValue(ctx.value()));
+
+        try {
+            return v;
+        } finally {
+            localVars.put(ctx.name().getText(), v);
+        }
     }
 
     @Override
-    @Nullable
-    public Variable visitPrimaryExpresion(KatLanParser.PrimaryExpresionContext ctx) {
-        var ex = ctx.expression();
-        Variable v = null;
-        if (ex!=null) {
-            v = visitExpression(ex);
-        } else if (ctx.bool()!=null) {
-            v = mm.var(boolean.class).set(Boolean.parseBoolean(ctx.bool().getText()));
-        } else if (ctx.name()!=null) {
-            try {
-                v = mm.this_().field(ctx.name().getText());
-            } catch (IllegalStateException ignored) {
-                v = mm.param(vars.get(ctx.name().getText()));
-            }
-        } else if (ctx.varAccess()!=null) {
-            v = new VarVisitor().visitVarAccess(ctx.varAccess(), null);
-        } else if (ctx.methodCall()!=null) {
+    public Variable visitConstDef1(KatLanParser.ConstDef1Context ctx) {
+        return super.visitConstDef1(ctx);
+    }
 
+    @Override
+    public Variable visitVarDef(KatLanParser.VarDefContext ctx) {
+        Variable v;
+        if (ctx.varDef0()!=null) {
+            v = visitVarDef0(ctx.varDef0());
+            //System.out.println("1 " + v.classType());
+        } else {
+            v = visitVarDef1(ctx.varDef1());
         }
 
         return v;
+    }
+
+    @Override
+    public Variable visitVarDef0(KatLanParser.VarDef0Context ctx) {
+        Variable v;
+        v = mm.var(getType(ctx.type().getText())).name(ctx.name().getText());
+        //System.out.println("3 " + v.classType());
+        v.set(vg.visitValue(ctx.value()));
+        //System.out.println("2 " + v.classType());
+
+        try {
+            return v;
+        } finally {
+            localVars.put(ctx.name().getText(), v);
+        }
+    }
+
+    @Override
+    public Variable visitVarDef1(KatLanParser.VarDef1Context ctx) {
+        return super.visitVarDef1(ctx);
     }
 
     public Object getType(String type) {
