@@ -23,7 +23,7 @@ classBlock: (
 ;
 
 block: lineBlock*;
-lineBlock: ((varDef | constDef | varAssignment | methodCall | statement) (ENDLINE+ | EOF));
+lineBlock: ((var | varAssignment | methodCall | statement) (ENDLINE+ | EOF));
 
 value: bool | expression | arithmeticExpression | name | STRING_VAL | anyType | arrayAccess;
 bool: TRUE | FALSE;
@@ -46,12 +46,13 @@ constDef0: 'const' name ':' type '=' value;
 constDef1: 'const' (name '=' value) (',' name '=' value)+ ':' type;
 
 varDef: access (varDef0 | varDef1);
-varDef0: 'var' name ':' type ('=' value)? ;
-varDef1: 'var' name (',' name)+ ':' type  ;
+varDef0: 'var' name ':' type ('=' value)?     ;
+varDef1: 'var' subVD1 (',' subVD1)+ ':' type  ;
+subVD1 : name ('=' value)                     ;
 
 statement: ifStatement | switchStatement | foriLoop | foriLoop0 | returnStatement | whileLoopStatement | tryCatchFinally;
 
-returnStatement: 'return' value;
+returnStatement: 'return' value?;
 
 switchStatement: 'switch' '(' expression ')' ENDLINE*
     '{' ENDLINE*
@@ -62,7 +63,12 @@ tryCatchFinally: 'try' (varAssignment)? (('{' ENDLINE* block ENDLINE* '}') | lin
                  'catch' '(' parameter ')' (('{' ENDLINE* block ENDLINE* '}') | lineBlock) ENDLINE*
                  ('finally' (('{' ENDLINE* block ENDLINE* '}') | lineBlock) ENDLINE)?;
 
-ifStatement: 'if' '(' expression ')' ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
+ifStatement: 'if' '(' expression ')' ifStatement0
+             ('else' ifStatement0)?
+             ;
+ifStatement0: ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
+
+
 whileLoopStatement: 'while' '(' expression ')' ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
 
 foriLoop: 'for' '(' varDef? ENDLINE expression? ENDLINE varAssignment?')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
@@ -100,18 +106,19 @@ nullType:
 arguments: argument (',' argument)*;
 argument : value;
 
-methodCall0: varAccess '.' NAME0 '(' arguments? ')';
+methodCall0: (varAccess '.')? NAME0 '(' arguments? ')';
 methodCall : methodCall0 ('.' methodCall0)*;
 
 constructorCall: 'new' name '(' arguments? ')';
 
-expression       : primaryExpresion  | logicalOr                                                                      ;
+expression       : primaryExpresion  | logicalOr | arithCondExpression                                                ;
 logicalOr        : (primaryExpresion | logicalAnd) (OR  (primaryExpresion | logicalAnd | logicalOr ))?                ;
 logicalAnd       : (primaryExpresion | logicalXor) (AND (primaryExpresion | logicalXor | logicalAnd))?                ;
 logicalXor       : (primaryExpresion | logicalNot) (XOR (primaryExpresion | logicalNot | logicalXor))?                ;
 logicalNot       : NOT? primaryExpresion                                                                              ;
 primaryExpresion : bool | methodCall | name | varAccess | ( '(' expression ')' ) | constructorCall | arrayAccess      ;
 
+arithCondExpression: arithmeticExpression (BT | LT | EQ | NE | LE | BE) arithmeticExpression                          ;
 
 arithmeticExpression: numberExpression | addSubExpression                                                             ;
 addSubExpression : modDivExpression ((PLUS | MINUS)      (numberExpression | addSubExpression))?                      ;
@@ -133,6 +140,7 @@ numeric_value: FLOAT_VAL | INT_VAL ;
 AS_KEYWORD    : 'as'    ;
 FOR_KEYWORD   : 'for'   ;
 IF_KEYWORD    : 'if'    ;
+ELSE_KEYWORD  : 'else'  ;
 SWITCH_KEYWORD: 'switch';
 
 STR:    'str'    ;
@@ -168,6 +176,12 @@ AND: 'and' | '&&';
 OR:  'or'  | '||';
 NOT: 'not' | '!' ;
 XOR: 'xor' | '^^';
+BT : '>'         ;
+LT : '<'         ;
+EQ : '=='        ;
+NE : '!='        ;
+LE : '<='        ;
+BE : '>='        ;
 
 CLASS_KEYWORD     : 'class'    ;
 ABSTRACT_KEYWORD  : 'abstract' ;
