@@ -278,6 +278,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitVarDef1(KatLanParser.VarDef1Context ctx);
 	/**
+	 * Enter a parse tree produced by {@link KatLanParser#subVD1}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubVD1(KatLanParser.SubVD1Context ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#subVD1}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubVD1(KatLanParser.SubVD1Context ctx);
+	/**
 	 * Enter a parse tree produced by {@link KatLanParser#statement}.
 	 * @param ctx the parse tree
 	 */
@@ -327,6 +337,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIfStatement(KatLanParser.IfStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#ifStatement0}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfStatement0(KatLanParser.IfStatement0Context ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#ifStatement0}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfStatement0(KatLanParser.IfStatement0Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#whileLoopStatement}.
 	 * @param ctx the parse tree
@@ -527,6 +547,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrimaryExpresion(KatLanParser.PrimaryExpresionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#arithCondExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterArithCondExpression(KatLanParser.ArithCondExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#arithCondExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitArithCondExpression(KatLanParser.ArithCondExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#arithmeticExpression}.
 	 * @param ctx the parse tree

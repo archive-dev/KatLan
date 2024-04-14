@@ -173,6 +173,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVarDef1(KatLanParser.VarDef1Context ctx);
 	/**
+	 * Visit a parse tree produced by {@link KatLanParser#subVD1}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSubVD1(KatLanParser.SubVD1Context ctx);
+	/**
 	 * Visit a parse tree produced by {@link KatLanParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -202,6 +208,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitIfStatement(KatLanParser.IfStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#ifStatement0}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIfStatement0(KatLanParser.IfStatement0Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#whileLoopStatement}.
 	 * @param ctx the parse tree
@@ -322,6 +334,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPrimaryExpresion(KatLanParser.PrimaryExpresionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#arithCondExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArithCondExpression(KatLanParser.ArithCondExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#arithmeticExpression}.
 	 * @param ctx the parse tree
