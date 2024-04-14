@@ -34,6 +34,7 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
 
     private HashMap<String, FieldMaker> addFields(KatLanParser.ClassBlockContext cb) {
         final HashMap<String, FieldMaker> map = new HashMap<>();
+        if (cb==null) return map;
         var vars = cb.var();
         for (var v : vars) {
             var field = addField(v);
@@ -86,15 +87,14 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
             if (vd.access().FINAL() != null)     fm.final_();
 
             if (vd0.value()!=null) {
-
+                System.out.println("sorry! no init");
             }
 
             set.add(new Pair<>(vName, fm));
         } else {
             var vType = Compiler.imports.get(vd1.type().getText());
-            for (var n : vd1.name()) {
-                FieldMaker fm = cm.addField(vType, n.getText());
-
+            for (var n : vd1.subVD1()) {
+                FieldMaker fm = cm.addField(vType, n.name().getText());
                 if (vd.access().PUBLIC() != null)    fm.public_();
                 if (vd.access().PRIVATE() != null)   fm.private_();
                 if (vd.access().PROTECTED() != null) fm.protected_();
