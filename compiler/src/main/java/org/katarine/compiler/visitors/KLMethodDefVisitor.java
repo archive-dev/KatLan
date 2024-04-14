@@ -9,7 +9,6 @@ import org.katarine.compiler.antlr4.KatLanParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
@@ -21,6 +20,7 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
 
     @Override
     public Void visitClassBlock(KatLanParser.ClassBlockContext ctx) {
+        if (ctx==null) return null;
         var methods = ctx.methodDef();
         HashMap<MethodMaker, Pair<HashMap<String, Integer>, KatLanParser.BlockContext>> map = new HashMap<>();
         for (var method : methods) {
@@ -40,26 +40,59 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
                 }
             }
 
-            map.put(cm.addMethod(retType, method.name().getText(), pTypes.toArray(Object[]::new)), new Pair<>(vars, method.block()));
+            MethodMaker mm = cm.addMethod(retType, method.name().getText(), pTypes.toArray(Object[]::new));
+
+            if (method.access().PUBLIC() != null)    mm.public_();
+            if (method.access().PRIVATE() != null)   mm.private_();
+            if (method.access().PROTECTED() != null) mm.protected_();
+            if (method.access().STATIC() != null)    mm.static_();
+            if (method.access().FINAL() != null)     mm.final_();
+
+            map.put(mm, new Pair<>(vars, method.block()));
         }
 
         for (var mm : map.entrySet()) {
-            new KLMethodVisitor(mm.getKey(), mm.getValue().a).visit(mm.getValue().b);
+            new KLMethodVisitor(mm.getKey(), mm.getValue().a).visitLines(mm.getValue().b.lineBlock());
         }
         return null;
     }
 
     private Object getType(String type) {
-        Object typeO = Compiler.imports.get(type);
+        String t = type;
+        if (type.contains("[]")) {
+            t = type.replaceAll("\\[]", "");
+        }
+
+        Object typeO = Compiler.imports.get(t);
+
+        StringBuilder sb = new StringBuilder();
+        while (type.contains("[]")) {
+            sb.append("[]");
+            type = type.replace("[]", "");
+        }
+
         if (typeO == null) {
             throw new NullPointerException("Unknown type: " + type);
         }
+        if (typeO instanceof Class<?> tc) {
+            typeO = tc.getTypeName();
+        }
+
+        typeO = typeO+sb.toString();
+
         return typeO;
     }
 
     @Override
     public Void visitUnnamedClassDef(KatLanParser.UnnamedClassDefContext ctx) {
-        return visitClassBlock(ctx.classBlock());
+        visitClassBlock(ctx.classBlock());
+        if (ctx.block() != null) {
+            MethodMaker mm = cm.addMethod(null, "main", String[].class).public_().static_();
+            HashMap<String, Integer> vars = new HashMap<>();
+            vars.put("args", 0);
+            new KLMethodVisitor(mm, vars).visitBlock(ctx.block());
+        }
+        return null;
     }
 
     @Override
