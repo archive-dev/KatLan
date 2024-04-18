@@ -35,7 +35,7 @@ arrayAccess: varAccess arrayAccess0+;
 arrayAccess0: ('[' arithmeticExpression ']');
 
 methodDef: access ABSTRACT_KEYWORD? 'def' name '(' parameters? ')' ':' type '{' ENDLINE* block ENDLINE* '}';
-constructorDef: access 'def' name '(' parameters? ')' '{' block '}';
+constructorDef: access 'new' name '(' parameters? ')' '{' ENDLINE* block ENDLINE* '}';
 parameters: (parameter) (',' parameter)*;
 parameter: name ':' type ('=' value)?;
 

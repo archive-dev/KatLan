@@ -51,6 +51,32 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
             map.put(mm, new Pair<>(vars, method.block()));
         }
 
+        for (var constructor : ctx.constructorDef()) {
+            HashMap<String, Integer> vars = new HashMap<>();
+            List<Object> pTypes = new ArrayList<>();
+
+            int i = 0;
+            if (constructor.parameters() != null) {
+                for (var p : constructor.parameters().parameter()) {
+                    Object type = getType(p.type().getText());
+                    pTypes.add(type);
+                    vars.put(p.name().getText(), i);
+                    i++;
+                }
+            }
+
+            MethodMaker mm = cm.addConstructor(pTypes.toArray(Object[]::new));
+
+            if (constructor.access().PUBLIC() != null)    mm.public_();
+            if (constructor.access().PRIVATE() != null)   mm.private_();
+            if (constructor.access().PROTECTED() != null) mm.protected_();
+            if (constructor.access().STATIC() != null)    mm.static_();
+            if (constructor.access().FINAL() != null)     mm.final_();
+
+            mm.invokeThisConstructor();
+            map.put(mm, new Pair<>(vars, constructor.block()));
+        }
+
         for (var mm : map.entrySet()) {
             new KLMethodVisitor(mm.getKey(), mm.getValue().a).visitLines(mm.getValue().b.lineBlock());
         }
