@@ -31,7 +31,7 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
 //        return getVariable(ctx.getText());
 //    }
 
-    private Variable getVariable(String name) {
+    public Variable getVariable(String name) {
         Variable v;
         v = getParameter(name);
 
@@ -42,9 +42,7 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
         if (v == null) {
             try {
                 v = mm.var(Compiler.imports.get(name));
-            } catch (NullPointerException ignored) {
-                v = null;
-            }
+            } catch (NullPointerException ignored) {}
         }
 
         if (v == null) {
@@ -102,7 +100,7 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
             } else {
                 try {
                     v.field(a);
-                    System.out.println(a);
+//                    System.out.println(a);
                 } catch (IllegalStateException ignored) {
                     return v;
                 }
@@ -153,12 +151,12 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
         String methodName = ctx.NAME0().getText();
 
         String importedName = (String) Compiler.imports.get(methodName);
-        System.out.println(importedName);
+//        System.out.println(importedName);
         if (importedName != null) {
             methodName = importedName.split("\\.")[importedName.split("\\.").length - 1];
 
             Variable c = visitVarAccess(importedName, v);
-            System.out.println(c.classType());
+//            System.out.println(c.classType());
             return c.invoke(methodName, args);
         }
 
@@ -214,9 +212,8 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
         // yeah
         var left = visit(ctx.children.remove(0));
         if (ctx.children.isEmpty()) return left;
-        var result = left.or(visit(ctx.children.remove(1)));
 
-        return result;
+        return left.or(visit(ctx.children.remove(1)));
     }
 
     @SuppressWarnings("UnnecessaryLocalVariable")

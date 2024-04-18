@@ -54,10 +54,11 @@ statement: ifStatement | switchStatement | foriLoop | foriLoop0 | returnStatemen
 
 returnStatement: 'return' value?;
 
-switchStatement: 'switch' '(' expression ')' ENDLINE*
+switchStatement: 'switch' '(' value ')' ENDLINE*
     '{' ENDLINE*
-        ((expression | 'default') '->' (('{' block '}') | lineBlock) ENDLINE*)+
+        subSwitch0+
     '}';
+subSwitch0: ((value | 'default') '->' (('{' ENDLINE* block ENDLINE* '}') | ENDLINE* lineBlock) ENDLINE*);
 
 tryCatchFinally: 'try' (varAssignment)? (('{' ENDLINE* block ENDLINE* '}') | lineBlock) ENDLINE*
                  'catch' '(' parameter ')' (('{' ENDLINE* block ENDLINE* '}') | lineBlock) ENDLINE*

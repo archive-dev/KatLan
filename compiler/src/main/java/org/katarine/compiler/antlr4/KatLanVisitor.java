@@ -197,6 +197,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSwitchStatement(KatLanParser.SwitchStatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link KatLanParser#subSwitch0}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSubSwitch0(KatLanParser.SubSwitch0Context ctx);
+	/**
 	 * Visit a parse tree produced by {@link KatLanParser#tryCatchFinally}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

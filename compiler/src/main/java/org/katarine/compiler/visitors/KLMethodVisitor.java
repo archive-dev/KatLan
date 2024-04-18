@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
-    private MethodMaker mm;
+    private final MethodMaker mm;
     final HashMap<String, Integer> vars = new HashMap<>(); // <name, index>
     final HashMap<String, Variable> localVars = new HashMap<>();
 
@@ -38,7 +38,7 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
 
     @Override
     public Variable visitLineBlock(KatLanParser.LineBlockContext ctx) {
-        System.out.println("LB");
+//        System.out.println("LB");
 //        System.out.println(ctx.parent.parent.getClass());
         for (ParseTree c : ctx.children) {
             visit(c);
@@ -71,7 +71,7 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
 
             v.set(vg.visitValue(ctx.value()));
         } else if (ctx.incrExpression()!=null) {
-            var v = vg.visitIncrExpression(ctx.incrExpression());
+            vg.visitIncrExpression(ctx.incrExpression());
         }
 
         return null;
@@ -101,21 +101,99 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
     }
 
     @Override
+    public Variable visitSwitchStatement(KatLanParser.SwitchStatementContext ctx) {
+
+        Variable v = vg.visitValue(ctx.value());
+
+        Label end = mm.label();
+
+        for (var ss : ctx.subSwitch0()) {
+            Label cond = mm.label();
+            Variable ex = null;
+            if (ss.value()!=null)
+                ex = vg.visitValue(ss.value());
+
+            if (ex!=null) {
+                v.ifNe(ex, cond);
+            }
+            visitSubSwitch0(ss);
+            mm.goto_(end);
+            cond.here();
+        }
+
+        end.here();
+
+        return null;
+    }
+
+    public Variable visitSubSwitch0(KatLanParser.SubSwitch0Context ctx) {
+        if (ctx.lineBlock() != null) {
+            visitLineBlock(ctx.lineBlock());
+        } else {
+            visitBlock(ctx.block());
+        }
+        System.out.println(ctx.getText());
+
+        return null;
+    }
+
+    @Override
+    public Variable visitForiLoop(KatLanParser.ForiLoopContext ctx) {
+        visitVarDef(ctx.varDef());
+
+        Label end = mm.label();
+        Label start = mm.label().here();
+
+        var cond = vg.visitExpression(ctx.expression());
+
+        cond.ifFalse(end);
+
+        if (ctx.lineBlock() != null)
+            visitLineBlock(ctx.lineBlock());
+        else visitBlock(ctx.block());
+
+
+        visitVarAssignment(ctx.varAssignment());
+
+        mm.goto_(start);
+        end.here();
+
+        return null;
+    }
+
+    @Override
+    public Variable visitForiLoop0(KatLanParser.ForiLoop0Context ctx) {
+        Variable type = vg.getVariable(ctx.type().getText());
+        Variable counter = mm.var(type);
+        localVars.put(ctx.name().getText(), counter);
+        Variable v1 = vg.visitValue(ctx.value(1)).cast(type);
+        counter.set(vg.visitValue(ctx.value(0)).cast(type));
+
+        Label start = mm.label().here();
+        Label end = mm.label();
+        Variable cond = counter.lt(v1);
+        cond.ifFalse(end);
+
+        if (ctx.lineBlock() != null)
+            visitLineBlock(ctx.lineBlock());
+        else visitBlock(ctx.block());
+
+        counter.inc(1);
+        mm.goto_(start);
+        end.here();
+
+        return null;
+    }
+
+    @Override
     public Variable visitIfStatement(KatLanParser.IfStatementContext ctx) {
         var ctx2 = ctx.ifStatement0(0);
         var v1 = vg.visitExpression(ctx.expression());
 
         if (ctx.ELSE_KEYWORD()!=null) {
-            v1.ifEq(true, () -> {
-            visitIfStatement0(ctx2);
-
-            }, () -> {
-                visitIfStatement0(ctx.ifStatement0(1));
-            });
+            v1.ifEq(true, () -> visitIfStatement0(ctx2), () -> visitIfStatement0(ctx.ifStatement0(1)));
         } else {
-            v1.ifNe(true, () -> {
-                visitIfStatement0(ctx2);
-            });
+            v1.ifNe(true, () -> visitIfStatement0(ctx2));
         }
 
         return null;
@@ -146,9 +224,8 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
         if (ctx.constDef()!=null) {
             return visitConstDef(ctx.constDef());
         } else {
-            Variable v = visitVarDef(ctx.varDef());
             //System.out.println("0 " + v.classType());
-            return v;
+            return visitVarDef(ctx.varDef());
         }
     }
 

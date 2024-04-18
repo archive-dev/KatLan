@@ -389,6 +389,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSubSwitch0(KatLanParser.SubSwitch0Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSubSwitch0(KatLanParser.SubSwitch0Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterTryCatchFinally(KatLanParser.TryCatchFinallyContext ctx) { }
 	/**
 	 * {@inheritDoc}

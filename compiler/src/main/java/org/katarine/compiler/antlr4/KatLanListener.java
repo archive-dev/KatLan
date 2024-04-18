@@ -318,6 +318,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitSwitchStatement(KatLanParser.SwitchStatementContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link KatLanParser#subSwitch0}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubSwitch0(KatLanParser.SubSwitch0Context ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#subSwitch0}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubSwitch0(KatLanParser.SubSwitch0Context ctx);
+	/**
 	 * Enter a parse tree produced by {@link KatLanParser#tryCatchFinally}.
 	 * @param ctx the parse tree
 	 */
