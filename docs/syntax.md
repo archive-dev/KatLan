@@ -6,31 +6,31 @@
 <br> To implement multiple classes you just add them separated by commas.
 Then you can define fields and/or methods:
     ```
-        // file name is example.kat
+     // file name is example.kat
 
-        extends Example1, Example2
-        
-        pub var name: str
-        
-        pub def getName(): str {
-            return name;    
-        }
+     extends Example1, Example2
+     
+     pub var name: str
+     
+     pub def getName(): str {
+         return name;    
+     }
     ```
 
     After all methods and field defined you can add code, that will automatically added to `main()` method:
 
     ```
-        // file name is example.kat
+     // file name is example.kat
 
-        extends Example1, Example2
-        
-        pub var name: str
-        
-        pub def getName(): str {
-            return name;    
-        }
+     extends Example1, Example2
+     
+     pub var name: str
+     
+     pub def getName(): str {
+         return name;    
+     }
 
-        print(new Example().getName()) // null
+     print(new Example().getName()) // null
     ```
     That's it with unnamed classes.
 
