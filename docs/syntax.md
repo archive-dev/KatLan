@@ -68,7 +68,7 @@ pub class Example {
 ## Method definitions
 
 Any method can be defined with `def` keyword with access modifiers (as given in [Variable definitions](#variable-definitions)) going before it.
-
+Method's parameters are declared as `name : type`.
 ```
 pub class Example {
     pub static def main(args: str[]) {
@@ -84,7 +84,7 @@ pub class Example {
 
 ## Constructor definitions
 
-To define a constructor you use the `new` keyword as if you were defining a method. When declaring a constructor no return type needed.
+To define a constructor in a class, you can use the `new` keyword, just like you would define a method. Unlike methods, constructors do not have a return type.
 
 ```
 pub class Example {
