@@ -78,7 +78,11 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
         }
 
         for (var mm : map.entrySet()) {
-            new KLMethodVisitor(mm.getKey(), mm.getValue().a).visitLines(mm.getValue().b.lineBlock());
+            var methodVisitior = new KLMethodVisitor(mm.getKey(), mm.getValue().a);
+            try {
+                methodVisitior.localVars.put("this", mm.getKey().this_());
+            } catch (IllegalStateException ignored) {} // this is thrown when the method is static, so no problems
+            methodVisitior.visitLines(mm.getValue().b.lineBlock());
         }
         return null;
     }
