@@ -8,7 +8,9 @@ import org.katarine.compiler.Compiler;
 import org.katarine.compiler.antlr4.KatLanBaseVisitor;
 import org.katarine.compiler.antlr4.KatLanParser;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
@@ -221,12 +223,20 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
     @Override
     public Variable visitVar(KatLanParser.VarContext ctx) {
         //System.out.println(ctx.getText());
+        List<Object> list = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); i++) {
+            Object o = list.get(i);
+            System.out.println(o.toString());
+        }
+
         if (ctx.constDef()!=null) {
             return visitConstDef(ctx.constDef());
         } else {
             //System.out.println("0 " + v.classType());
             return visitVarDef(ctx.varDef());
         }
+
     }
 
     @Override

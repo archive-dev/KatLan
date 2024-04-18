@@ -1180,6 +1180,7 @@ public class KatLanParser extends Parser {
 		public BoolContext bool() {
 			return getRuleContext(BoolContext.class,0);
 		}
+		public TerminalNode STRING_VAL() { return getToken(KatLanParser.STRING_VAL, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
@@ -1189,7 +1190,6 @@ public class KatLanParser extends Parser {
 		public NameContext name() {
 			return getRuleContext(NameContext.class,0);
 		}
-		public TerminalNode STRING_VAL() { return getToken(KatLanParser.STRING_VAL, 0); }
 		public AnyTypeContext anyType() {
 			return getRuleContext(AnyTypeContext.class,0);
 		}
@@ -1233,28 +1233,28 @@ public class KatLanParser extends Parser {
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(292);
-				expression();
+				match(STRING_VAL);
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(293);
-				arithmeticExpression();
+				expression();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(294);
-				name();
+				arithmeticExpression();
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
 				setState(295);
-				match(STRING_VAL);
+				name();
 				}
 				break;
 			case 6:
@@ -6556,8 +6556,8 @@ public class KatLanParser extends Parser {
 		"\u011e\u011f\u0001\u0000\u0000\u0000\u011f\u0122\u0001\u0000\u0000\u0000"+
 		"\u0120\u0122\u0005\u0000\u0000\u0001\u0121\u011c\u0001\u0000\u0000\u0000"+
 		"\u0121\u0120\u0001\u0000\u0000\u0000\u0122\u0013\u0001\u0000\u0000\u0000"+
-		"\u0123\u012b\u0003\u0016\u000b\u0000\u0124\u012b\u0003b1\u0000\u0125\u012b"+
-		"\u0003p8\u0000\u0126\u012b\u0003~?\u0000\u0127\u012b\u0005J\u0000\u0000"+
+		"\u0123\u012b\u0003\u0016\u000b\u0000\u0124\u012b\u0005J\u0000\u0000\u0125"+
+		"\u012b\u0003b1\u0000\u0126\u012b\u0003p8\u0000\u0127\u012b\u0003~?\u0000"+
 		"\u0128\u012b\u0003P(\u0000\u0129\u012b\u0003\u001c\u000e\u0000\u012a\u0123"+
 		"\u0001\u0000\u0000\u0000\u012a\u0124\u0001\u0000\u0000\u0000\u012a\u0125"+
 		"\u0001\u0000\u0000\u0000\u012a\u0126\u0001\u0000\u0000\u0000\u012a\u0127"+

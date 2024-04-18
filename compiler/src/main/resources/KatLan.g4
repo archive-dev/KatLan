@@ -25,7 +25,7 @@ classBlock: (
 block: lineBlock*;
 lineBlock: ((var | varAssignment | methodCall | statement) (ENDLINE+ | EOF));
 
-value: bool | expression | arithmeticExpression | name | STRING_VAL | anyType | arrayAccess;
+value: bool | STRING_VAL | expression | arithmeticExpression | name | anyType | arrayAccess;
 bool: TRUE | FALSE;
 
 varAssignment: (varAccess '=' value) | incrExpression;
