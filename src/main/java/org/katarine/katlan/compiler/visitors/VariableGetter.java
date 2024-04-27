@@ -1,21 +1,26 @@
-package org.katarine.compiler.visitors;
+package org.katarine.katlan.compiler.visitors;
 
+import org.cojen.maker.Label;
+import org.katarine.katlan.compiler.antlr4.KatLanBaseVisitor;
 import org.cojen.maker.MethodMaker;
 import org.cojen.maker.Variable;
-import org.katarine.compiler.Compiler;
-import org.katarine.compiler.antlr4.KatLanBaseVisitor;
-import org.katarine.compiler.antlr4.KatLanParser;
+import org.katarine.katlan.compiler.Compiler;
+import org.katarine.katlan.compiler.antlr4.KatLanParser;
+import org.katarine.katlan.compiler.internal.MethodCall;
+import org.katarine.katlan.lib.ClassLink;
+import org.katarine.katlan.lib.MethodLink;
+import org.katarine.katlan.lib.annotations.KLAnnotation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class VariableGetter extends KatLanBaseVisitor<Variable> {
     MethodMaker mm;
     final HashMap<String, Integer> vars;
+    Compiler compiler;
 
-    public VariableGetter(MethodMaker mm, HashMap<String, Integer> vars, HashMap<String, Variable> localVars) {
+    public VariableGetter(MethodMaker mm, Compiler compiler, HashMap<String, Integer> vars, HashMap<String, Variable> localVars) {
         this.mm = mm;
+        this.compiler = compiler;
         this.vars = vars;
         this.localVars = localVars;
     }
@@ -41,7 +46,7 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
 
         if (v == null) {
             try {
-                v = mm.var(Compiler.imports.get(name));
+                v = mm.var(compiler.imports.get(name));
             } catch (NullPointerException ignored) {}
         }
 
@@ -141,8 +146,28 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
         return v;
     }
 
+    public Variable visitAnnotationCall(KatLanParser.AnnotationCallContext ctx, Variable annotated) {
+        ArrayList<Object> args = new ArrayList<>();
+        args.add(annotated);
+        if (ctx.arguments()!=null)
+            args.addAll(List.of(visitArguments(ctx.arguments(), null)));
+        Variable v = mm.new_(compiler.imports.get(ctx.name().getText()), args.toArray(Object[]::new));
+
+        return v;
+    }
+
+    public Variable visitAnnotationCalls(List<KatLanParser.AnnotationCallContext> ctx, Variable annotated) {
+        Variable annArr = mm.new_(KLAnnotation[].class, 1);
+        for (int i = 0; i < ctx.size(); i++) {
+            var c = ctx.get(i);
+            annArr.aset(i, visitAnnotationCall(c, annotated));
+        }
+        return annArr;
+    }
+
     public Variable visitMethodCall0(KatLanParser.MethodCall0Context ctx, Variable v) {
-        Object[] args = new Object[]{};
+        // TODO OPTIMIZE
+        Variable[] args = new Variable[]{};
 
         if (ctx.arguments() != null) {
             args = visitArguments(ctx.arguments(), null);
@@ -150,23 +175,46 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
 
         String methodName = ctx.NAME0().getText();
 
-        String importedName = (String) Compiler.imports.get(methodName);
+        String importedName = (String) compiler.imports.get(methodName);
 //        System.out.println(importedName);
+        Variable owner = null;
         if (importedName != null) {
             methodName = importedName.split("\\.")[importedName.split("\\.").length - 1];
 
-            Variable c = visitVarAccess(importedName, v);
+            owner = visitVarAccess(importedName, v);
 //            System.out.println(c.classType());
-            return c.invoke(methodName, args);
         }
-
 
         if (ctx.varAccess() != null) {
-            Variable c = visitVarAccess(ctx.varAccess(), v);
-            return c.invoke(methodName, args);
+            owner = visitVarAccess(ctx.varAccess(), v);
         }
 
-        return mm.invoke(methodName, args);
+        Variable argTypes = mm.var(Class[].class).set(mm.new_(Class[].class, args.length));
+        Variable argsV = mm.var(Object[].class).set(mm.new_(Object[].class, args.length));
+        for (int i = 0; i < args.length; i++) {
+            var a = args[i];
+            argTypes.aset(i, a.classType());
+            argsV.aset(i, a);
+        }
+
+//        new MethodLink(owner.classType(), owner, methodName, Arrays.stream(args).map(Object::getClass).toArray(Class[]::new));
+        Variable methodLink = mm.var(MethodLink.class);
+        Label l = mm.label();
+        Label l2 = mm.label();
+        owner.invoke("getClass").invoke("equals", mm.class_()).ifNe(true, l);
+        methodLink.set(mm.field("klclass").invoke("getMethodLink", methodName, argTypes));
+        mm.goto_(l2);
+        l.here();
+        methodLink.set(mm.new_(ClassLink.class, owner.invoke("getClass")).invoke("getMethodLink", methodName, argTypes));
+        l2.here();
+
+        List<KatLanParser.AnnotationCallContext> annotationCall = ctx.annotationCall();
+
+        Variable methodCall = mm.new_(MethodCall.class, methodLink, owner, argsV);
+        Variable annotationsArr = visitAnnotationCalls(annotationCall, methodCall);
+        methodCall.field("annotations").invoke("addAll", mm.var(List.class).invoke("of", annotationsArr));
+
+        return methodCall.invoke("call");
     }
 
     public Variable[] visitArguments(KatLanParser.ArgumentsContext ctx, Void dummy) {
@@ -185,10 +233,10 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
     @Override
     public Variable visitConstructorCall(KatLanParser.ConstructorCallContext ctx) {
         if (ctx.arguments() == null) {
-            return mm.new_(Compiler.imports.get(ctx.name().getText()));
+            return mm.new_(compiler.imports.get(ctx.name().getText()));
         }
 
-        return mm.new_(Compiler.imports.get(ctx.name().getText()), (Object[]) visitArguments(ctx.arguments(), null));
+        return mm.new_(compiler.imports.get(ctx.name().getText()), (Object[]) visitArguments(ctx.arguments(), null));
     }
 
     @Override
