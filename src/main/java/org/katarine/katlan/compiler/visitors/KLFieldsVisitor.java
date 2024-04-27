@@ -1,20 +1,22 @@
-package org.katarine.compiler.visitors;
+package org.katarine.katlan.compiler.visitors;
 
+import org.katarine.katlan.compiler.Compiler;
+import org.katarine.katlan.compiler.antlr4.KatLanBaseVisitor;
+import org.katarine.katlan.compiler.antlr4.KatLanParser;
 import org.antlr.v4.runtime.misc.Pair;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
-import org.katarine.compiler.Compiler;
-import org.katarine.compiler.antlr4.KatLanBaseVisitor;
-import org.katarine.compiler.antlr4.KatLanParser;
 
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMaker>> {
+    Compiler compiler;
     ClassMaker cm;
 
-    public KLFieldsVisitor(ClassMaker cm) {
+    public KLFieldsVisitor(ClassMaker cm, Compiler compiler) {
         this.cm = cm;
+        this.compiler = compiler;
     }
 
     @Override
@@ -34,6 +36,7 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
 
     private HashMap<String, FieldMaker> addFields(KatLanParser.ClassBlockContext cb) {
         final HashMap<String, FieldMaker> map = new HashMap<>();
+
         if (cb==null) return map;
         var vars = cb.var();
         for (var v : vars) {
@@ -51,13 +54,13 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
 
         if (cd0 != null) {
             var vName = cd0.name().getText();
-            FieldMaker fm = cm.addField(Compiler.imports.get(cd0.type().getText()), vName).static_().final_();
+            FieldMaker fm = cm.addField(compiler.imports.get(cd0.type().getText()), vName).static_().final_();
             if (cc.access().PUBLIC() != null)    fm.public_();
             if (cc.access().PRIVATE() != null)   fm.private_();
             if (cc.access().PROTECTED() != null) fm.protected_();
             set.add(new Pair<>(vName, fm));
         } else {
-            var vType = Compiler.imports.get(cd1.type().getText());
+            var vType = compiler.imports.get(cd1.type().getText());
             for (var n : cd1.name()) {
                 FieldMaker fm = cm.addField(vType, n.getText()).static_().final_();
                 if (cc.access().PUBLIC() != null)    fm.public_();
@@ -79,7 +82,7 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
 
         if (vd0 != null) {
             var vName = vd0.name().getText();
-            FieldMaker fm = cm.addField(Compiler.imports.get(vd0.type().getText()), vName);
+            FieldMaker fm = cm.addField(compiler.imports.get(vd0.type().getText()), vName);
             if (vd.access().PUBLIC() != null)    fm.public_();
             if (vd.access().PRIVATE() != null)   fm.private_();
             if (vd.access().PROTECTED() != null) fm.protected_();
@@ -92,7 +95,7 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
 
             set.add(new Pair<>(vName, fm));
         } else {
-            var vType = Compiler.imports.get(vd1.type().getText());
+            var vType = compiler.imports.get(vd1.type().getText());
             for (var n : vd1.subVD1()) {
                 FieldMaker fm = cm.addField(vType, n.name().getText());
                 if (vd.access().PUBLIC() != null)    fm.public_();
