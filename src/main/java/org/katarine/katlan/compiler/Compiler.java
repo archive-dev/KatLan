@@ -1,23 +1,27 @@
-package org.katarine.compiler;
+package org.katarine.katlan.compiler;
 
+import com.google.common.reflect.ClassPath;
+import org.katarine.katlan.compiler.antlr4.KatLanLexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
-import org.katarine.compiler.antlr4.KatLanLexer;
-import org.katarine.compiler.antlr4.KatLanParser;
-import org.katarine.compiler.visitors.*;
+import org.katarine.katlan.compiler.antlr4.KatLanParser;
+import org.katarine.katlan.compiler.visitors.*;
+import org.katarine.katlan.lib.ClassLink;
+import org.katarine.katlan.lib.annotations.AnnotationExample;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class Compiler {
-    public static final HashMap<String, Object> imports = new HashMap<>();
-    static {
+    public final HashMap<String, Object> imports = new HashMap<>();
+    {
         imports.put("obj",    Object.class);
         imports.put("str",    String.class);
         imports.put("float",  float.class);
@@ -133,17 +137,36 @@ public class Compiler {
         imports.put("VerifyError", VerifyError.class);
         imports.put("VirtualMachineError", VirtualMachineError.class);
         imports.put("Void", Void.class);
-        imports.put("WrongThreadException", WrongThreadException.class);
         imports.put("print", "System.out.println");
+
+        try {
+            ClassPath.from(ClassLoader.getSystemClassLoader())
+                    .getAllClasses()
+                    .stream().filter(c -> c.getPackageName().startsWith("org.katarine.katlan.lib") || c.getPackageName().startsWith("org.katarine.compiler"))
+                    .forEach(c -> {
+                        imports.put(c.getSimpleName(), c);
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        imports.put("AnnotationExample", AnnotationExample.class);
     }
 
-    public static final HashMap<String, FieldMaker> fields = new HashMap<>();
-    public static String package_;
+    public final HashMap<String, FieldMaker> fields = new HashMap<>();
+    public String package_;
+    public ClassLink classLink;
 
     public static void main(String[] args) throws IOException {
+        for (var f : args) {
+            new Compiler().compile(f);
+        }
+    }
+
+    public void compile(String fileName) throws IOException {
         CharStream cs;
 
-        cs = CharStreams.fromFileName(args[0]);
+        cs = CharStreams.fromFileName(fileName);
         KatLanLexer klx = new KatLanLexer(cs);
         CommonTokenStream cts = new CommonTokenStream(klx);
         KatLanParser klp = new KatLanParser(cts);
@@ -154,8 +177,9 @@ public class Compiler {
         package_ = new KLPackageVisitor().visit(pc);
         imports.putAll(new KLImportVisitor().visit(ibc));
         ParserRuleContext r = new KLClassVisitor().visitClass(cc);
-        String className = args[0].substring(0, args[0].lastIndexOf('.'));
+        String className = fileName.substring(0, fileName.lastIndexOf('.'));
         className = className.substring(0, 1).toUpperCase() + className.substring(1);
+        className = className.substring(className.indexOf("/")+1);
         ClassMaker cm;
 
         if (r instanceof KatLanParser.ClassDefContext) {
@@ -164,29 +188,36 @@ public class Compiler {
             cm = ClassMaker.beginExternal(className).extend(Object.class).public_();
             imports.put(cm.name(), cm);
             cm.addConstructor().public_();
-            fields.putAll( new KLFieldsVisitor(cm).visitClassDef((KatLanParser.ClassDefContext) r));
+            fields.putAll( new KLFieldsVisitor(cm, this).visitClassDef((KatLanParser.ClassDefContext) r));
             if (((KatLanParser.ClassDefContext) r).ABSTRACT_KEYWORD() != null) cm.abstract_();
 
-            new KLMethodDefVisitor(cm).visitClassDef((KatLanParser.ClassDefContext) r);
+            new KLMethodDefVisitor(cm, this).visitClassDef((KatLanParser.ClassDefContext) r);
         } else if (r instanceof KatLanParser.UnnamedClassDefContext) {
             System.out.println("compiling unnamed class");
             cm = ClassMaker.beginExternal(className).public_();
             imports.put(cm.name(), cm);
             cm.addConstructor();
-            fields.putAll(new KLFieldsVisitor(cm).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
+            fields.putAll(new KLFieldsVisitor(cm, this).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
 
-            new KLMethodDefVisitor(cm).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r);
+            new KLMethodDefVisitor(cm, this).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r);
         } else {
             System.out.println("compiling interface");
             className = ((KatLanParser.InterfaceDefContext) r).name(0).getText();
             cm = ClassMaker.beginExternal(className).public_().interface_();
             imports.put(cm.name(), cm);
-            fields.putAll(new KLFieldsVisitor(cm).visitInterfaceDef((KatLanParser.InterfaceDefContext) r));
+            fields.putAll(new KLFieldsVisitor(cm, this).visitInterfaceDef((KatLanParser.InterfaceDefContext) r));
             cm.interface_();
-            new KLMethodDefVisitor(cm).visitInterfaceDef((KatLanParser.InterfaceDefContext) r);
+            new KLMethodDefVisitor(cm, this).visitInterfaceDef((KatLanParser.InterfaceDefContext) r);
         }
 
-        File output = new File(cm.name() + ".class");
+        StringBuilder pathBuilder = new StringBuilder();
+        for (int i = 0; i < fileName.split("/").length-1; i++) {
+            pathBuilder.append(fileName.split("/")[i]).append("/");
+        }
+        System.out.println(pathBuilder);
+        pathBuilder.append(cm.name()).append(".class");
+        System.out.println(pathBuilder);
+        File output = new File(pathBuilder.toString());
         try (FileOutputStream fos = new FileOutputStream(output)) {
             cm.finishTo(fos);
         }
