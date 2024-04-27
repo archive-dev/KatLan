@@ -1,29 +1,29 @@
-package org.katarine.compiler.visitors;
+package org.katarine.katlan.compiler.visitors;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.cojen.maker.Label;
 import org.cojen.maker.MethodMaker;
 import org.cojen.maker.Variable;
-import org.katarine.compiler.Compiler;
-import org.katarine.compiler.antlr4.KatLanBaseVisitor;
-import org.katarine.compiler.antlr4.KatLanParser;
+import org.katarine.katlan.compiler.Compiler;
+import org.katarine.katlan.compiler.antlr4.KatLanBaseVisitor;
+import org.katarine.katlan.compiler.antlr4.KatLanParser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
     private final MethodMaker mm;
     final HashMap<String, Integer> vars = new HashMap<>(); // <name, index>
     final HashMap<String, Variable> localVars = new HashMap<>();
+    final Compiler compiler;
 
-    private final VariableGetter vg;
+    public final VariableGetter vg;
 
-    public KLMethodVisitor(MethodMaker mm, HashMap<String, Integer> vars) {
+    public KLMethodVisitor(MethodMaker mm, Compiler compiler, HashMap<String, Integer> vars) {
         this.mm = mm;
+        this.compiler = compiler;
         this.vars.putAll(vars);
-        vg = new VariableGetter(mm, this.vars, this.localVars);
+        vg = new VariableGetter(mm, this.compiler, this.vars, this.localVars);
     }
 
     @Override
@@ -222,14 +222,6 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
 
     @Override
     public Variable visitVar(KatLanParser.VarContext ctx) {
-        //System.out.println(ctx.getText());
-        List<Object> list = new ArrayList<>();
-
-        for (int i = 0; i < list.size(); i++) {
-            Object o = list.get(i);
-            System.out.println(o.toString());
-        }
-
         if (ctx.constDef()!=null) {
             return visitConstDef(ctx.constDef());
         } else {
@@ -304,6 +296,6 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
     }
 
     public Object getType(String type) {
-        return Compiler.imports.get(type);
+        return compiler.imports.get(type);
     }
 }
