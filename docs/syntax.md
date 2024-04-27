@@ -169,3 +169,38 @@ There are 2 types of for loops in KatLan.
       // some code with list objects...
    }
    ```
+   
+### Annotations
+
+Annotations can be used when defining a method, field or class, and when calling a method. <br>
+To use an annotation write ```$Annotation``` and add ```(parameters)``` if any
+
+```
+$Serialize
+pub class Example {
+   $Serialize
+   pub var name: str
+   
+   $LogTime
+   pub static def main(args: str[]) {
+      $Repeat(5)
+      print('hello')
+   }  
+}
+```
+
+While creating annotation in pure KatLan is not supported yet, you can still create them in Java
+```Java
+@Target({KLTarget.METHOD_CALL})
+public class ExampleAnnotation extends KLAnnotation {
+   public ExampleAnnotation(KLAnnotatedElement annotated) {
+      super(annotated);
+   }
+   
+   // name of method might be anything else as long it has an annotation 
+   @BeforeMethodCall
+   public void handle() {
+      System.out.println(annotatedObject);   
+   }
+}
+```
