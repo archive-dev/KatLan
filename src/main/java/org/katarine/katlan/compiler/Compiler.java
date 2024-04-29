@@ -1,23 +1,23 @@
 package org.katarine.katlan.compiler;
 
 import com.google.common.reflect.ClassPath;
-import org.katarine.katlan.compiler.antlr4.KatLanLexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
+import org.katarine.katlan.compiler.antlr4.KatLanLexer;
 import org.katarine.katlan.compiler.antlr4.KatLanParser;
 import org.katarine.katlan.compiler.visitors.*;
-import org.katarine.katlan.lib.ClassLink;
 import org.katarine.katlan.lib.annotations.AnnotationExample;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Compiler {
     public final HashMap<String, Object> imports = new HashMap<>();
@@ -102,7 +102,7 @@ public class Compiler {
         imports.put("Object", Object.class);
         imports.put("OutOfMemoryError", OutOfMemoryError.class);
         imports.put("Override", Override.class);
-        imports.put("Package", Package.class);
+        imports.put("KLPackage", Package.class);
         imports.put("Process", Process.class);
         imports.put("ProcessBuilder", ProcessBuilder.class);
         imports.put("ProcessHandle", ProcessHandle.class);
@@ -155,15 +155,14 @@ public class Compiler {
 
     public final HashMap<String, FieldMaker> fields = new HashMap<>();
     public String package_;
-    public ClassLink classLink;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         for (var f : args) {
             new Compiler().compile(f);
         }
     }
 
-    public void compile(String fileName) throws IOException {
+    public void compile(String fileName) throws IOException, ClassNotFoundException {
         CharStream cs;
 
         cs = CharStreams.fromFileName(fileName);
@@ -181,12 +180,22 @@ public class Compiler {
         className = className.substring(0, 1).toUpperCase() + className.substring(1);
         className = className.substring(className.indexOf("/")+1);
         ClassMaker cm;
-
+        String superName = "obj";
         if (r instanceof KatLanParser.ClassDefContext) {
             System.out.println("compiling class");
             className = ((KatLanParser.ClassDefContext) r).name(0).getText();
-            cm = ClassMaker.beginExternal(className).extend(Object.class).public_();
-            imports.put(cm.name(), cm);
+            ArrayList<String> interfaces = new ArrayList<>();
+            List<KatLanParser.NameContext> names = ((KatLanParser.ClassDefContext) r).name();
+            for (int i = 1; i < names.size(); i++) {
+                var s = names.get(i).getText();
+                if (Class.forName(s).isInterface()) {
+                    interfaces.add(s);
+                } else {
+                    superName = s;
+                }
+            }
+            cm = ClassMaker.beginExternal(package_ + "." + className).extend(imports.get(superName)).public_();
+            imports.put(className, cm);
             cm.addConstructor().public_();
             fields.putAll( new KLFieldsVisitor(cm, this).visitClassDef((KatLanParser.ClassDefContext) r));
             if (((KatLanParser.ClassDefContext) r).ABSTRACT_KEYWORD() != null) cm.abstract_();
@@ -194,8 +203,8 @@ public class Compiler {
             new KLMethodDefVisitor(cm, this).visitClassDef((KatLanParser.ClassDefContext) r);
         } else if (r instanceof KatLanParser.UnnamedClassDefContext) {
             System.out.println("compiling unnamed class");
-            cm = ClassMaker.beginExternal(className).public_();
-            imports.put(cm.name(), cm);
+            cm = ClassMaker.beginExternal(package_ + "." + className).public_();
+            imports.put(className, cm);
             cm.addConstructor();
             fields.putAll(new KLFieldsVisitor(cm, this).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
 
@@ -203,28 +212,20 @@ public class Compiler {
         } else {
             System.out.println("compiling interface");
             className = ((KatLanParser.InterfaceDefContext) r).name(0).getText();
-            cm = ClassMaker.beginExternal(className).public_().interface_();
-            imports.put(cm.name(), cm);
+            cm = ClassMaker.beginExternal(package_ + "." + className).public_().interface_();
+            imports.put(className, cm);
             fields.putAll(new KLFieldsVisitor(cm, this).visitInterfaceDef((KatLanParser.InterfaceDefContext) r));
             cm.interface_();
             new KLMethodDefVisitor(cm, this).visitInterfaceDef((KatLanParser.InterfaceDefContext) r);
         }
 
         StringBuilder pathBuilder = new StringBuilder();
-        for (int i = 0; i < fileName.split("/").length-1; i++) {
-            pathBuilder.append(fileName.split("/")[i]).append("/");
-        }
-        System.out.println(pathBuilder);
-        pathBuilder.append(cm.name()).append(".class");
-        System.out.println(pathBuilder);
+        pathBuilder.append(cm.name().replace(".", "/")).append(".class");
         File output = new File(pathBuilder.toString());
+        File outDir = new File(pathBuilder.substring(0, pathBuilder.toString().lastIndexOf("/")));
+        if (!outDir.exists()) outDir.mkdirs();
         try (FileOutputStream fos = new FileOutputStream(output)) {
             cm.finishTo(fos);
         }
-
-//        ClassMaker cm = ClassMaker.beginExternal().public_();
-//        MethodMaker mm = cm.addMethod(null, "main", String[].class);
-
-//        mm = mm.public_().static_();
     }
 }
