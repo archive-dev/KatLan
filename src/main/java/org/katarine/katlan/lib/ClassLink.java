@@ -1,5 +1,6 @@
 package org.katarine.katlan.lib;
 
+import org.katarine.katlan.compiler.internal.Packages;
 import org.katarine.katlan.lib.annotations.KLAnnotatedElement;
 import org.katarine.katlan.lib.annotations.KLAnnotation;
 import org.katarine.katlan.lib.annotations.Target;
@@ -7,6 +8,7 @@ import org.katarine.katlan.lib.structs.ImmutableArrayList;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,12 +16,15 @@ import java.util.Objects;
 
 public class ClassLink implements KLAnnotatedElement { // @ClassName
     private final Class<?> type;
+    public final ClassType classType;
+    public final boolean isFinal;
     public final String name;
     private final Method[] methods;
     public final ImmutableArrayList<MethodLink> methodLinks = new ImmutableArrayList<>();
     public final Field[] fields;
     public final Class<?> superClass;
     public final ImmutableArrayList<KLAnnotation> klAnnotations = new ImmutableArrayList<>();
+    public final KLPackage pkg;
 
     public ClassLink(Class<?> type, KLAnnotation[] klAnnotations) {
         this.type = type;
@@ -32,6 +37,12 @@ public class ClassLink implements KLAnnotatedElement { // @ClassName
         this.methodLinks.addAll(mls);
 
         this.klAnnotations.addAll(List.of(klAnnotations));
+        if (Modifier.isAbstract(this.type.getModifiers())) this.classType = ClassType.ABSTRACT;
+        else if (Modifier.isInterface(this.type.getModifiers())) this.classType = ClassType.INTERFACE;
+        else this.classType = ClassType.CLASS;
+
+        this.isFinal = Modifier.isFinal(this.type.getModifiers());
+        this.pkg = Packages.getPackage(this.type.getPackageName());
     }
 
     public ClassLink(Class<?> type) {
