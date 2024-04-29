@@ -1,16 +1,23 @@
 package org.katarine.katlan.lib;
 
+import org.katarine.katlan.lib.annotations.KLAnnotatedElement;
+import org.katarine.katlan.lib.annotations.KLAnnotation;
+import org.katarine.katlan.lib.annotations.Target;
+import org.katarine.katlan.lib.structs.ImmutableArrayList;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
-public class FieldLink extends FieldHandleable implements Accessible { // @fieldName
+public class FieldLink extends FieldHandleable implements Accessible, KLAnnotatedElement { // @fieldName
     public final String fieldName;
     public final Class<?> type;
     public final Access access;
     public final Ownership ownership;
     public final org.katarine.katlan.lib.Modifier modifier;
     public final Annotation[] annotations;
+    public final ImmutableArrayList<KLAnnotation> klAnnotations = new ImmutableArrayList<>();
     public final Class<?> declaringClass;
     /**
      * Object that owns this field. May be null.
@@ -27,7 +34,7 @@ public class FieldLink extends FieldHandleable implements Accessible { // @field
      * @param fieldName Name of field to be referenced.
      * @param klAnnotations KatLan annotations of this field. They are automatically set by compiler.
      */
-    public FieldLink(Class<?> declaringClass, Object owner, String fieldName) {
+    public FieldLink(Class<?> declaringClass, Object owner, String fieldName, KLAnnotation... klAnnotations) {
         this.fieldName = fieldName;
         this.declaringClass = declaringClass;
         try {
@@ -61,6 +68,8 @@ public class FieldLink extends FieldHandleable implements Accessible { // @field
         else if (Modifier.isPrivate(this.field.getModifiers())) this.access = Access.PRIVATE;
         else if (Modifier.isProtected(this.field.getModifiers())) this.access = Access.PROTECTED;
         else this.access = Access.PACKAGE_PRIVATE;
+
+        this.klAnnotations.addAll(List.of(klAnnotations));
     }
 
     public void set(Object instance, Object value) {
@@ -180,5 +189,15 @@ public class FieldLink extends FieldHandleable implements Accessible { // @field
         if (this.ownership != Ownership.STATIC && caller == null) throw new IllegalAccessException("Instance is null on non-static field " + this.fieldName);
 
         if (!this.field.canAccess(caller)) throw new IllegalAccessException("Instance can't access field " + this.fieldName);
+    }
+
+    @Override
+    public Target.KLTarget getThisTargetType() {
+        return Target.KLTarget.FIELD;
+    }
+
+    @Override
+    public KLAnnotation[] getKlAnnotations() {
+        return new KLAnnotation[0];
     }
 }
