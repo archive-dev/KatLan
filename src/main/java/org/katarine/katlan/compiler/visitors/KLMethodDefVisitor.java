@@ -69,7 +69,8 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
             System.out.println(cl.classType() + " " + method.name().getText() + " " + pTypesArrV.classType());
 
             Variable ml = methodDefs.new_(MethodLink.class, cl, method.name().getText(), pTypesArrV);
-            Variable annotationCalls = new VariableGetter(methodDefs, this.compiler, new HashMap<>(), new HashMap<>()).visitAnnotationCalls(method.annotationCall(), ml);
+            Variable annotationCalls = new VariableGetter(methodDefs, this.compiler, new HashMap<>(), new HashMap<>())
+                    .visitAnnotationCalls(method.annotationCall(), ml);
             List<KatLanParser.AnnotationCallContext> annotationCall = method.annotationCall();
             for (int j = 0; j < annotationCall.size(); j++) {
                 ml.field("klAnnotations").invoke("add", annotationCalls.aget(j));

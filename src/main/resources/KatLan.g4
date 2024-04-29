@@ -9,9 +9,9 @@ importStatement: 'import' name ('as' name)? ENDLINE+;
 
 unnamedClassDef: ('extends' name (',' name)* ENDLINE+)? classBlock? block?;
 
-classDef: access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (':' name (',' name)*)?
+classDef: annotationCall* access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (':' name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
-interfaceDef: access INTERFACE_KEYWORD name (':' name (',' name)*)?
+interfaceDef: annotationCall* access INTERFACE_KEYWORD name (':' name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
 
 classBlock: (
@@ -28,26 +28,26 @@ lineBlock: ((var | varAssignment | methodCall | statement) (ENDLINE+ | EOF));
 value: bool | STRING_VAL | expression | arithmeticExpression | name | anyType | arrayAccess;
 bool: TRUE | FALSE;
 
-varAssignment: (varAccess '=' value) | incrExpression;
+varAssignment: annotationCall* (varAccess '=' value) | incrExpression;
 
-varAccess : NAME0 ('.' varAccess)?;
+varAccess : annotationCall* NAME0 ('.' varAccess)?;
 arrayAccess: varAccess arrayAccess0+;
 arrayAccess0: ('[' arithmeticExpression ']');
 
-methodDef: access ABSTRACT_KEYWORD? 'def' name '(' parameters? ')' ':' type '{' ENDLINE* block ENDLINE* '}';
-constructorDef: access 'new' name '(' parameters? ')' '{' ENDLINE* block ENDLINE* '}';
+methodDef: annotationCall* access ABSTRACT_KEYWORD? 'def' name '(' parameters? ')' ':' type '{' ENDLINE* block ENDLINE* '}';
+constructorDef: annotationCall* access 'new' name '(' parameters? ')' '{' ENDLINE* block ENDLINE* '}';
 parameters: (parameter) (',' parameter)*;
-parameter: name ':' type ('=' value)?;
+parameter: annotationCall* name ':' type ('=' value)?;
 
 var: varDef | constDef;
 
 constDef: access (constDef0 | constDef1);
-constDef0: 'const' name ':' type '=' value;
-constDef1: 'const' (name '=' value) (',' name '=' value)+ ':' type;
+constDef0: annotationCall* 'const' name ':' type '=' value;
+constDef1: annotationCall* 'const' (name '=' value) (',' name '=' value)+ ':' type;
 
 varDef: access (varDef0 | varDef1);
-varDef0: 'var' name ':' type ('=' value)?     ;
-varDef1: 'var' subVD1 (',' subVD1)+ ':' type  ;
+varDef0: annotationCall* 'var' name ':' type ('=' value)?     ;
+varDef1: annotationCall* 'var' subVD1 (',' subVD1)+ ':' type  ;
 subVD1 : name ('=' value)                     ;
 
 statement: ifStatement | switchStatement | foriLoop | foriLoop0 | returnStatement | whileLoopStatement | tryCatchFinally;
@@ -107,8 +107,10 @@ nullType:
 arguments: argument (',' argument)*;
 argument : value;
 
-methodCall0: (varAccess '.')? NAME0 '(' arguments? ')';
+methodCall0: annotationCall* (varAccess '.')? NAME0 '(' arguments? ')';
 methodCall : methodCall0 ('.' methodCall0)*;
+
+annotationCall: '$' name ('(' arguments ')')? ENDLINE*;
 
 constructorCall: 'new' name '(' arguments? ')';
 
@@ -117,7 +119,7 @@ logicalOr        : (primaryExpresion | logicalAnd) (OR  (primaryExpresion | logi
 logicalAnd       : (primaryExpresion | logicalXor) (AND (primaryExpresion | logicalXor | logicalAnd))?                ;
 logicalXor       : (primaryExpresion | logicalNot) (XOR (primaryExpresion | logicalNot | logicalXor))?                ;
 logicalNot       : NOT? primaryExpresion                                                                              ;
-primaryExpresion : bool | methodCall | name | varAccess | ( '(' expression ')' ) | constructorCall | arrayAccess      ;
+primaryExpresion : bool | methodCall | varAccess | name | ( '(' expression ')' ) | constructorCall | arrayAccess      ;
 
 arithCondExpression: arithmeticExpression (BT | LT | EQ | NE | LE | BE) arithmeticExpression                          ;
 

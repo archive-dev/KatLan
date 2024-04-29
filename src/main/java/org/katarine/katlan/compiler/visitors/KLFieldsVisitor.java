@@ -31,7 +31,29 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
 
     @Override
     public HashMap<String, FieldMaker> visitInterfaceDef(KatLanParser.InterfaceDefContext ctx) {
-        return addFields(ctx.classBlock());
+        HashMap<String, FieldMaker> map = new HashMap<>();
+        for (var v : ctx.classBlock().var()) {
+            if (v.varDef() != null) {
+                if (v.varDef().varDef0() != null) {
+                    cm.addMethod(compiler.imports.get(v.varDef().varDef0().type().getText()),
+                            v.varDef().varDef0().name().getText()).abstract_();
+                } else {
+                    for (var n : v.varDef().varDef1().subVD1()) {
+                        cm.addMethod(compiler.imports.get(v.varDef().varDef1().type().getText()), n.name().getText()).abstract_();
+                    }
+                }
+            } else {
+                if (v.constDef().constDef0() != null) {
+                    cm.addMethod(compiler.imports.get(v.constDef().constDef0().type().getText()),
+                            v.constDef().constDef0().name().getText()).abstract_();
+                } else {
+                    for (var n : v.constDef().constDef1().name()) {
+                        cm.addMethod(compiler.imports.get(v.constDef().constDef1().type().getText()), n.getText()).abstract_();
+                    }
+                }
+            }
+        }
+        return map;
     }
 
     private HashMap<String, FieldMaker> addFields(KatLanParser.ClassBlockContext cb) {
@@ -109,18 +131,4 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
         }
         return set;
     }
-
-//    @Override //TODO: make 'em methods!
-//    public HashMap<String, Pair<Object, Object>> visitInterfaceDef(KatLanParser.InterfaceDefContext ctx) {
-//        HashMap<String, Pair<Object, Object>> map = new HashMap<>();
-//        ctx.classBlock().var().forEach(vd -> {
-//            if (vd.varDef().varDef0() != null) {
-//                map.put(vd.varDef().varDef0().name().getText(), new Pair<>(Compiler.imports.get(vd.varDef().varDef0().type().getText()), vd.varDef().varDef0().value().getText()));
-//            } else {
-//                String type = vd.varDef().varDef1().type().getText();
-//                vd.varDef().varDef1().name().forEach(n -> map.put(n.getText(), new Pair<>(type, null)));
-//            }
-//        });
-//        return map;
-//    }
 }

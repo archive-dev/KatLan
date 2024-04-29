@@ -1,4 +1,4 @@
-// Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/compiler/src/main/resources/KatLan.g4 by ANTLR 4.13.1
+// Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
 package org.katarine.katlan.compiler.antlr4;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -179,12 +179,6 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSubVD1(KatLanParser.SubVD1Context ctx);
 	/**
-	 * Visit a parse tree produced by {@link KatLanParser#annotationCall}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAnnotationCall(KatLanParser.AnnotationCallContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link KatLanParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -304,6 +298,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitMethodCall(KatLanParser.MethodCallContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#annotationCall}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAnnotationCall(KatLanParser.AnnotationCallContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#constructorCall}.
 	 * @param ctx the parse tree

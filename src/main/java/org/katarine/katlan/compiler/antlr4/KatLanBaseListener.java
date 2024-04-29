@@ -1,4 +1,4 @@
-// Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/compiler/src/main/resources/KatLan.g4 by ANTLR 4.13.1
+// Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
 package org.katarine.katlan.compiler.antlr4;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -353,18 +353,6 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAnnotationCall(KatLanParser.AnnotationCallContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnnotationCall(KatLanParser.AnnotationCallContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterStatement(KatLanParser.StatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -600,6 +588,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitMethodCall(KatLanParser.MethodCallContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAnnotationCall(KatLanParser.AnnotationCallContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAnnotationCall(KatLanParser.AnnotationCallContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -1,4 +1,4 @@
-// Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/compiler/src/main/resources/KatLan.g4 by ANTLR 4.13.1
+// Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
 package org.katarine.katlan.compiler.antlr4;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -288,16 +288,6 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitSubVD1(KatLanParser.SubVD1Context ctx);
 	/**
-	 * Enter a parse tree produced by {@link KatLanParser#annotationCall}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnnotationCall(KatLanParser.AnnotationCallContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link KatLanParser#annotationCall}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnnotationCall(KatLanParser.AnnotationCallContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link KatLanParser#statement}.
 	 * @param ctx the parse tree
 	 */
@@ -497,6 +487,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMethodCall(KatLanParser.MethodCallContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#annotationCall}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnnotationCall(KatLanParser.AnnotationCallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#annotationCall}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnnotationCall(KatLanParser.AnnotationCallContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#constructorCall}.
 	 * @param ctx the parse tree
