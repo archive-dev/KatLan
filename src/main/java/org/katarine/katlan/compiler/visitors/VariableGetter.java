@@ -151,13 +151,12 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
         args.add(annotated);
         if (ctx.arguments()!=null)
             args.addAll(List.of(visitArguments(ctx.arguments(), null)));
-        Variable v = mm.new_(compiler.imports.get(ctx.name().getText()), args.toArray(Object[]::new));
 
-        return v;
+        return mm.new_(compiler.imports.get(ctx.name().getText()), args.toArray(Object[]::new));
     }
 
     public Variable visitAnnotationCalls(List<KatLanParser.AnnotationCallContext> ctx, Variable annotated) {
-        Variable annArr = mm.new_(KLAnnotation[].class, 1);
+        Variable annArr = mm.var(KLAnnotation[].class).set(mm.new_(KLAnnotation[].class, ctx.size()));
         for (int i = 0; i < ctx.size(); i++) {
             var c = ctx.get(i);
             annArr.aset(i, visitAnnotationCall(c, annotated));
