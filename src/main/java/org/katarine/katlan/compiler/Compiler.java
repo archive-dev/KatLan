@@ -1,20 +1,18 @@
 package org.katarine.katlan.compiler;
 
 import com.google.common.reflect.ClassPath;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.*;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
 import org.katarine.katlan.compiler.antlr4.KatLanLexer;
 import org.katarine.katlan.compiler.antlr4.KatLanParser;
 import org.katarine.katlan.compiler.visitors.*;
-import org.katarine.katlan.lib.annotations.AnnotationExample;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -143,89 +141,110 @@ public class Compiler {
             ClassPath.from(ClassLoader.getSystemClassLoader())
                     .getAllClasses()
                     .stream().filter(c -> c.getPackageName().startsWith("org.katarine.katlan.lib") || c.getPackageName().startsWith("org.katarine.compiler"))
-                    .forEach(c -> {
-                        imports.put(c.getSimpleName(), c);
-                    });
+                    .forEach(c -> imports.put(c.getSimpleName(), c));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        imports.put("AnnotationExample", AnnotationExample.class);
     }
 
     public final HashMap<String, FieldMaker> fields = new HashMap<>();
     public String package_;
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException {
         for (var f : args) {
             new Compiler().compile(f);
         }
     }
 
-    public void compile(String fileName) throws IOException, ClassNotFoundException {
-        CharStream cs;
-
-        cs = CharStreams.fromFileName(fileName);
+    public void compile(String fileName) throws IOException {
+        CharStream cs = CharStreams.fromFileName(fileName);
         KatLanLexer klx = new KatLanLexer(cs);
         CommonTokenStream cts = new CommonTokenStream(klx);
         KatLanParser klp = new KatLanParser(cts);
 
         KatLanParser.ClassContext cc = klp.class_();
-        var ibc = cc.importBlock();
-        var pc = cc.package_();
-        package_ = new KLPackageVisitor().visit(pc);
-        imports.putAll(new KLImportVisitor().visit(ibc));
         ParserRuleContext r = new KLClassVisitor().visitClass(cc);
-        String className = fileName.substring(0, fileName.lastIndexOf('.'));
-        className = className.substring(0, 1).toUpperCase() + className.substring(1);
-        className = className.substring(className.indexOf("/")+1);
-        ClassMaker cm;
-        String superName = "obj";
-        if (r instanceof KatLanParser.ClassDefContext) {
-            System.out.println("compiling class");
-            className = ((KatLanParser.ClassDefContext) r).name(0).getText();
-            ArrayList<String> interfaces = new ArrayList<>();
-            List<KatLanParser.NameContext> names = ((KatLanParser.ClassDefContext) r).name();
-            for (int i = 1; i < names.size(); i++) {
-                var s = names.get(i).getText();
-                if (Class.forName(s).isInterface()) {
-                    interfaces.add(s);
-                } else {
-                    superName = s;
-                }
-            }
-            cm = ClassMaker.beginExternal(package_ + "." + className).extend(imports.get(superName)).public_();
-            imports.put(className, cm);
-            cm.addConstructor().public_();
-            fields.putAll( new KLFieldsVisitor(cm, this).visitClassDef((KatLanParser.ClassDefContext) r));
-            if (((KatLanParser.ClassDefContext) r).ABSTRACT_KEYWORD() != null) cm.abstract_();
+        String className = extractClassName(fileName);
+        String packagePath = new KLPackageVisitor().visit(cc.package_());
+        File output = prepareOutputFile(packagePath, className, r);
 
-            new KLMethodDefVisitor(cm, this).visitClassDef((KatLanParser.ClassDefContext) r);
-        } else if (r instanceof KatLanParser.UnnamedClassDefContext) {
-            System.out.println("compiling unnamed class");
-            cm = ClassMaker.beginExternal(package_ + "." + className).public_();
-            imports.put(className, cm);
-            cm.addConstructor();
-            fields.putAll(new KLFieldsVisitor(cm, this).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r));
-
-            new KLMethodDefVisitor(cm, this).visitUnnamedClassDef((KatLanParser.UnnamedClassDefContext) r);
-        } else {
-            System.out.println("compiling interface");
-            className = ((KatLanParser.InterfaceDefContext) r).name(0).getText();
-            cm = ClassMaker.beginExternal(package_ + "." + className).public_().interface_();
-            imports.put(className, cm);
-            fields.putAll(new KLFieldsVisitor(cm, this).visitInterfaceDef((KatLanParser.InterfaceDefContext) r));
-            cm.interface_();
-            new KLMethodDefVisitor(cm, this).visitInterfaceDef((KatLanParser.InterfaceDefContext) r);
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{output.getParentFile().toURI().toURL()})) {
+            ClassMaker cm = setupClassMaker(loader, packagePath, className, r);
+            handleImportsAndFields(cm, cc);
+            handleMethods(cm, r);
+            writeClassToFile(cm, output);
         }
+    }
 
-        StringBuilder pathBuilder = new StringBuilder();
-        pathBuilder.append(cm.name().replace(".", "/")).append(".class");
-        File output = new File(pathBuilder.toString());
-        File outDir = new File(pathBuilder.substring(0, pathBuilder.toString().lastIndexOf("/")));
-        if (!outDir.exists()) outDir.mkdirs();
+    private String extractClassName(String fileName) {
+        String className = fileName.substring(0, fileName.lastIndexOf('.'));
+        className = className.substring(className.lastIndexOf('/') + 1);
+        return Character.toUpperCase(className.charAt(0)) + className.substring(1);
+    }
+
+    private File prepareOutputFile(String packagePath, String className, ParserRuleContext r) throws IOException {
+        className = resolveClassName(r, className);
+
+        String path = packagePath.replace(".", "/") + "/" + className + ".class";
+        File output = new File(path);
+        if (!output.getParentFile().exists() && !output.getParentFile().mkdirs()) {
+            throw new IOException("Failed to create output directory.");
+        }
+        return output;
+    }
+
+    private ClassMaker setupClassMaker(URLClassLoader loader, String packagePath, String className, ParserRuleContext r) {
+        String superName = "obj"; // default superclass
+        className = resolveClassName(r, className);
+
+        ClassMaker cm = ClassMaker.beginExplicit(packagePath + "." + className, loader, null).public_();
+        if (r instanceof KatLanParser.ClassDefContext && ((KatLanParser.ClassDefContext) r).ABSTRACT_KEYWORD() != null) {
+            cm.abstract_();
+        } else if (r instanceof KatLanParser.InterfaceDefContext) {
+            cm.interface_();
+        }
+        return cm;
+    }
+
+    private String resolveClassName(ParserRuleContext r, String className) {
+        if (r instanceof KatLanParser.ClassDefContext) {
+            return ((KatLanParser.ClassDefContext) r).name(0).getText();
+        } else if (r instanceof KatLanParser.InterfaceDefContext) {
+            return ((KatLanParser.InterfaceDefContext) r).name(0).getText();
+        }
+        return className;
+    }
+
+    private void handleImportsAndFields(ClassMaker cm, KatLanParser.ClassContext r) {
+        KLImportVisitor importVisitor = new KLImportVisitor(cm);
+        imports.putAll(importVisitor.visit(r.importBlock()));
+        KLFieldsVisitor fieldsVisitor = new KLFieldsVisitor(cm, this);
+        fields.putAll(fieldsVisitor.visit(r));
+    }
+
+    private void handleMethods(ClassMaker cm, ParserRuleContext r) {
+        KLMethodDefVisitor methodVisitor = new KLMethodDefVisitor(cm, this);
+        methodVisitor.visit(r);
+    }
+
+    private void writeClassToFile(ClassMaker cm, File output) throws IOException {
         try (FileOutputStream fos = new FileOutputStream(output)) {
             cm.finishTo(fos);
         }
+    }
+
+    private ArrayList<Object> getClasses(List<String> names) {
+        ArrayList<Object> ret = new ArrayList<>();
+        try {
+            for (String name : names) {
+                Object o = imports.get(name);
+                if (o == null)
+                    throw new ClassNotFoundException("Class not found: " + name);
+                ret.add(o);
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return ret;
     }
 }
