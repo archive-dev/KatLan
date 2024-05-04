@@ -1,6 +1,8 @@
 package org.katarine.katlan.lib.annotations;
 
-public interface KLAnnotatedElement {
+import java.io.Serializable;
+
+public interface KLAnnotatedElement extends Serializable {
     Target.KLTarget getThisTargetType();
     KLAnnotation[] getKlAnnotations();
 }

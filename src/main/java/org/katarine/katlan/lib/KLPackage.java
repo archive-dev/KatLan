@@ -1,8 +1,9 @@
 package org.katarine.katlan.lib;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class KLPackage {
+public class KLPackage implements Serializable {
     public final Package pkg;
 
     private final ArrayList<ClassLink> classes = new ArrayList<>();

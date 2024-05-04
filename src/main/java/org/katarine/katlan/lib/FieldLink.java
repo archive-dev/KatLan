@@ -5,12 +5,13 @@ import org.katarine.katlan.lib.annotations.KLAnnotation;
 import org.katarine.katlan.lib.annotations.Target;
 import org.katarine.katlan.lib.structs.ImmutableArrayList;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-public class FieldLink extends FieldHandleable implements Accessible, KLAnnotatedElement { // @fieldName
+public class FieldLink extends FieldHandleable implements Serializable, Accessible, KLAnnotatedElement { // @fieldName
     public final String fieldName;
     public final Class<?> type;
     public final Access access;

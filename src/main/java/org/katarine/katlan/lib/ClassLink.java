@@ -6,6 +6,7 @@ import org.katarine.katlan.lib.annotations.KLAnnotation;
 import org.katarine.katlan.lib.annotations.Target;
 import org.katarine.katlan.lib.structs.ImmutableArrayList;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -14,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class ClassLink implements KLAnnotatedElement { // @ClassName
+public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassName
     private final Class<?> type;
     public final ClassType classType;
     public final boolean isFinal;

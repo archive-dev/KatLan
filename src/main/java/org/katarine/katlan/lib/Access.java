@@ -1,6 +1,8 @@
 package org.katarine.katlan.lib;
 
-public enum Access {
+import java.io.Serializable;
+
+public enum Access implements Serializable {
     PUBLIC,
     PRIVATE,
     PROTECTED,

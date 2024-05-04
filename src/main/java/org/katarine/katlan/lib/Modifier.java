@@ -1,6 +1,8 @@
 package org.katarine.katlan.lib;
 
-public enum Modifier {
+import java.io.Serializable;
+
+public enum Modifier implements Serializable {
     FINAL,
     ABSTRACT,
     NONE

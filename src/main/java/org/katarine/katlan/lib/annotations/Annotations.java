@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-public class Annotations {
+public abstract class Annotations {
     public enum CallType {
         PRE_METHOD_CALL, POST_METHOD_CALL, ON_METHOD_INIT,
         ON_FIELD_GET, ON_FIELD_SET,

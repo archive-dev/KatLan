@@ -1,9 +1,10 @@
 package org.katarine.katlan.lib.structs;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class ImmutableArrayList<E> extends ArrayList<E> {
+public class ImmutableArrayList<E> extends ArrayList<E> implements Serializable {
     private boolean immutable = false;
     
 

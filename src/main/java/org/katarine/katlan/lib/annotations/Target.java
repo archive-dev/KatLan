@@ -1,5 +1,6 @@
 package org.katarine.katlan.lib.annotations;
 
+import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -10,7 +11,7 @@ public @interface Target {
     KLTarget[] value();
 
 
-    enum KLTarget {
+    enum KLTarget implements Serializable {
         CLASS(ElementType.TYPE),
         METHOD(ElementType.METHOD),
         FIELD(ElementType.FIELD),

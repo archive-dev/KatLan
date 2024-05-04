@@ -1,8 +1,9 @@
 package org.katarine.katlan.lib;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-abstract class Handleable {
+abstract class Handleable implements Serializable {
     @FunctionalInterface
     public interface PreHandler extends Handler {
         void handle(Object caller, Object... args);

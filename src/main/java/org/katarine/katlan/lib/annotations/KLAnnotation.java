@@ -3,10 +3,11 @@ package org.katarine.katlan.lib.annotations;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.MethodMaker;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 
-public abstract class KLAnnotation {
+public abstract class KLAnnotation implements Serializable {
     public final Object annotatedObject;
 
     public KLAnnotation(KLAnnotatedElement annotatedObject) {

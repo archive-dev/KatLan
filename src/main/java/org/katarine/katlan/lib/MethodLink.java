@@ -1,13 +1,13 @@
 package org.katarine.katlan.lib;
 
-import org.katarine.katlan.compiler.internal.MethodCall;
-import org.katarine.katlan.lib.structs.ImmutableArrayList;
 import org.katarine.katlan.compiler.annotations.KLAnnotationWrapper;
 import org.katarine.katlan.lib.annotations.Annotations;
 import org.katarine.katlan.lib.annotations.KLAnnotatedElement;
 import org.katarine.katlan.lib.annotations.KLAnnotation;
 import org.katarine.katlan.lib.annotations.Target;
+import org.katarine.katlan.lib.structs.ImmutableArrayList;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MethodLink extends Handleable implements Accessible, KLAnnotatedElement { // @methodName(pType1, pType2...)
+public class MethodLink extends Handleable implements Serializable, Accessible, KLAnnotatedElement { // @methodName(pType1, pType2...)
     public final String methodName;
     public final Class<?>[] parameterTypes;
     public final Class<?> returnType;

@@ -1,6 +1,8 @@
 package org.katarine.katlan.lib;
 
-public enum Ownership {
+import java.io.Serializable;
+
+public enum Ownership implements Serializable {
     STATIC,
     INSTANCE
 }

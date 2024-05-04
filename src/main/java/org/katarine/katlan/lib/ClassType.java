@@ -1,6 +1,8 @@
 package org.katarine.katlan.lib;
 
-public enum ClassType {
+import java.io.Serializable;
+
+public enum ClassType implements Serializable {
     INTERFACE,
     ABSTRACT,
     CLASS
