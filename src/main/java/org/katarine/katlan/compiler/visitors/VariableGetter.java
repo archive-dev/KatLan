@@ -1,5 +1,6 @@
 package org.katarine.katlan.compiler.visitors;
 
+import org.cojen.maker.ClassMaker;
 import org.cojen.maker.Label;
 import org.katarine.katlan.compiler.antlr4.KatLanBaseVisitor;
 import org.cojen.maker.MethodMaker;
@@ -47,7 +48,9 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
         if (v == null) {
             try {
                 v = mm.var(compiler.imports.get(name));
-            } catch (NullPointerException ignored) {}
+            } catch (NullPointerException | IllegalArgumentException ignored) {
+                v = mm.var(generateUnknownClass(name));
+            }
         }
 
         if (v == null) {
@@ -57,6 +60,12 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
         if (v==null) throw new IllegalStateException("Variable " + name + " is not defined");
 
         return v;
+    }
+
+    public ClassMaker generateUnknownClass(String name) {
+        var cm = ClassMaker.beginExternal(name);
+        compiler.imports.replace(name, cm);
+        return cm;
     }
 
     @Override
