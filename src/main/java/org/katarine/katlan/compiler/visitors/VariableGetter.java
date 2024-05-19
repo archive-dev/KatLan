@@ -205,22 +205,15 @@ public class VariableGetter extends KatLanBaseVisitor<Variable> {
             argsV.aset(i, a);
         }
 
-//        new MethodLink(owner.classType(), owner, methodName, Arrays.stream(args).map(Object::getClass).toArray(Class[]::new));
+//        new MethodLink(owner.classType(), methodName, Arrays.stream(args).map(Object::getClass).toArray(Class[]::new));
         Variable methodLink = mm.var(MethodLink.class);
-        Label l = mm.label();
-        Label l2 = mm.label();
-        owner.invoke("getClass").invoke("equals", mm.class_()).ifNe(true, l);
-        methodLink.set(mm.field("klclass").invoke("getMethodLink", methodName, argTypes));
-        mm.goto_(l2);
-        l.here();
-        methodLink.set(mm.new_(ClassLink.class, owner.invoke("getClass")).invoke("getMethodLink", methodName, argTypes));
-        l2.here();
+        if (owner.classType()==null)
+            methodLink.set(mm.var(mm.class_()).field("klclass").invoke("getMethodLink", methodName, argTypes));
+        else
+            methodLink.set(mm.new_(MethodLink.class, owner.classType(), methodName, argTypes));
 
-        List<KatLanParser.AnnotationCallContext> annotationCall = ctx.annotationCall();
-
-        Variable methodCall = mm.new_(MethodCall.class, methodLink, owner, argsV);
-        Variable annotationsArr = visitAnnotationCalls(annotationCall, methodCall);
-        methodCall.field("annotations").invoke("addAll", mm.var(List.class).invoke("of", annotationsArr));
+        Variable methodCall = mm.var(MethodCall.class);
+        methodCall.set(mm.new_(MethodCall.class, methodLink, owner, argsV));
 
         return methodCall.invoke("call");
     }
