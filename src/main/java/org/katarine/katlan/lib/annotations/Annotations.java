@@ -1,56 +1,28 @@
 package org.katarine.katlan.lib.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
 
-public abstract class Annotations {
-    public enum CallType {
-        PRE_METHOD_CALL, POST_METHOD_CALL, ON_METHOD_INIT,
-        ON_FIELD_GET, ON_FIELD_SET,
-        PRE_FIELD_GET, PRE_FIELD_SET, POST_FIELD_GET, POST_FIELD_SET,
-        ON_CLASS_INIT;
+public final class Annotations {
+    private Annotations(){}
+
+    private static final Hashtable<KLAnnotatedElement, ArrayList<Annotation>> annotations = new Hashtable<>();
+    private static final HashSet<Annotation> registeredAnnotations = new HashSet<>();
+
+    static void registerAnnotation(Annotation annotation, KLAnnotatedElement annotatedElement) {
+        if (registeredAnnotations.contains(annotation)) return;
+        annotations.computeIfAbsent(annotatedElement, k -> new ArrayList<>(4));
+        annotations.get(annotatedElement).add(annotation);
+        registeredAnnotations.add(annotation);
     }
 
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface OnClassInit {}
+    static void registerAnnotation(KLAnnotation annotation) {
+        registerAnnotation(annotation, annotation.annotatedObject);
+    }
 
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface OnMethodInit {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface BeforeMethodCall {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface AfterMethodCall {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface OnFieldGet {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface BeforeFieldGet {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface AfterFieldGet {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface OnFieldSet {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface BeforeFieldSet {}
-
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface AfterFieldSet {}
+    public static Annotation[] getAnnotations(KLAnnotatedElement annotatedElement) {
+        return annotatedElement.getAnnotations();
+    }
 }
-
