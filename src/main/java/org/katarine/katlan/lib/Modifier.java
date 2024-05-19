@@ -2,8 +2,10 @@ package org.katarine.katlan.lib;
 
 import java.io.Serializable;
 
-public enum Modifier implements Serializable {
-    FINAL,
-    ABSTRACT,
-    NONE
+public class Modifier implements Serializable {
+    public static final Modifier NONE = new Modifier();
+    public static final Modifier FINAL = new Modifier();
+    public static final Modifier ABSTRACT = new Modifier();
+
+    protected Modifier() {}
 }
