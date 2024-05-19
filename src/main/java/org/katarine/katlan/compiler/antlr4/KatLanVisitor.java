@@ -53,11 +53,29 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitInterfaceDef(KatLanParser.InterfaceDefContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link KatLanParser#annotationDef}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAnnotationDef(KatLanParser.AnnotationDefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#namespaceBlock}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNamespaceBlock(KatLanParser.NamespaceBlockContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link KatLanParser#classBlock}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitClassBlock(KatLanParser.ClassBlockContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#annotationClassBlock}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAnnotationClassBlock(KatLanParser.AnnotationClassBlockContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#block}.
 	 * @param ctx the parse tree
@@ -82,6 +100,30 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitBool(KatLanParser.BoolContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#genericTypeName}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGenericTypeName(KatLanParser.GenericTypeNameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#genericDef}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGenericDef(KatLanParser.GenericDefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#genericTypeUse}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGenericTypeUse(KatLanParser.GenericTypeUseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#varAssignment}.
 	 * @param ctx the parse tree
@@ -118,6 +160,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitConstructorDef(KatLanParser.ConstructorDefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#operatorOverDef}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOperatorOverDef(KatLanParser.OperatorOverDefContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#parameters}.
 	 * @param ctx the parse tree
@@ -227,6 +275,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitWhileLoopStatement(KatLanParser.WhileLoopStatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link KatLanParser#forEachLoop}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitForEachLoop(KatLanParser.ForEachLoopContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link KatLanParser#foriLoop}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -244,6 +298,18 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAccess(KatLanParser.AccessContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#methodModifier}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMethodModifier(KatLanParser.MethodModifierContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#operator}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOperator(KatLanParser.OperatorContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#type}.
 	 * @param ctx the parse tree

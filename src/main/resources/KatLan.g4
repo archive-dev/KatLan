@@ -1,23 +1,50 @@
 grammar KatLan;
 
 
-class: package? importBlock (classDef | interfaceDef | unnamedClassDef);
+class: ENDLINE* package? importBlock? (classDef | interfaceDef | unnamedClassDef | annotationDef) ENDLINE*;
 
 package: 'package' name ENDLINE+;
-importBlock: (importStatement)*;
+importBlock: (importStatement)+;
 importStatement: 'import' name ('as' name)? ENDLINE+;
 
-unnamedClassDef: ('extends' name (',' name)* ENDLINE+)? classBlock? block?;
+unnamedClassDef: (EXTENDS name (',' name)* ENDLINE+)? namespaceBlock? ENDLINE+ ('{' ENDLINE* classBlock? ENDLINE* '}')? ENDLINE+ namespaceBlock?;
 
-classDef: annotationCall* access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (':' name (',' name)*)?
+classDef: annotationCall* access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (EXTENDS name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
-interfaceDef: annotationCall* access INTERFACE_KEYWORD name (':' name (',' name)*)?
+interfaceDef: annotationCall* access INTERFACE_KEYWORD name (EXTENDS name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
+annotationDef: annotationCall* access ANNOTATION_KEYWORD name (EXTENDS name (',' name)*)?
+        '{' ENDLINE* annotationClassBlock ENDLINE* '}';
+
+namespaceBlock: (
+    (var            |
+    methodDef       |
+    classDef        |
+    interfaceDef    |
+    annotationDef
+    )
+    ENDLINE+
+    )+
+;
 
 classBlock: (
-    (var |
-    methodDef |
-    constructorDef)
+    (var            |
+    methodDef       |
+    constructorDef  |
+    operatorOverDef |
+    classDef        |
+    interfaceDef    |
+    annotationDef
+    )
+    ENDLINE+
+    )+
+;
+
+annotationClassBlock: (
+    (var            |
+    methodDef       |
+    classDef        |
+    interfaceDef)
     ENDLINE+
     )+
 ;
@@ -28,27 +55,34 @@ lineBlock: ((var | varAssignment | methodCall | statement) (ENDLINE+ | EOF));
 value: bool | STRING_VAL | expression | arithmeticExpression | name | anyType | arrayAccess;
 bool: TRUE | FALSE;
 
+genericTypeName: name | '?'; //todo
+genericDef: ('<' genericTypeUse (',' genericTypeUse)* '>');
+genericTypeUse: genericTypeName extendsStatement?;
+extendsStatement: EXTENDS anyType;
+
 varAssignment: annotationCall* (varAccess '=' value) | incrExpression;
 
 varAccess : annotationCall* NAME0 ('.' varAccess)?;
 arrayAccess: varAccess arrayAccess0+;
 arrayAccess0: ('[' arithmeticExpression ']');
 
-methodDef: annotationCall* access ABSTRACT_KEYWORD? 'def' name '(' parameters? ')' ':' type '{' ENDLINE* block ENDLINE* '}';
+methodDef: annotationCall* access methodModifier 'def' name '(' parameters? ')' COLON type '{' ENDLINE* block ENDLINE* '}';
 constructorDef: annotationCall* access 'new' name '(' parameters? ')' '{' ENDLINE* block ENDLINE* '}';
+operatorOverDef: annotationCall* OP_OV_MOD operator '(' parameter ')' '{' ENDLINE* block ENDLINE* '}';
+
 parameters: (parameter) (',' parameter)*;
-parameter: annotationCall* name ':' type ('=' value)?;
+parameter: annotationCall* name COLON type ('=' value)?;
 
 var: varDef | constDef;
 
 constDef: access (constDef0 | constDef1);
-constDef0: annotationCall* 'const' name ':' type '=' value;
-constDef1: annotationCall* 'const' (name '=' value) (',' name '=' value)+ ':' type;
+constDef0: annotationCall* 'const' name COLON type '=' value;
+constDef1: annotationCall* 'const' (name '=' value) (',' name '=' value)+ COLON type;
 
 varDef: access (varDef0 | varDef1);
-varDef0: annotationCall* 'var' name ':' type ('=' value)?     ;
-varDef1: annotationCall* 'var' subVD1 (',' subVD1)+ ':' type  ;
-subVD1 : name ('=' value)                     ;
+varDef0: annotationCall* 'var' name COLON type ('=' value)?     ;
+varDef1: annotationCall* 'var' subVD1 (',' subVD1)+ COLON type  ;
+subVD1 : name ('=' value)                                     ;
 
 statement: ifStatement | switchStatement | foriLoop | foriLoop0 | returnStatement | whileLoopStatement | tryCatchFinally;
 
@@ -72,16 +106,20 @@ ifStatement0: ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
 
 whileLoopStatement: 'while' '(' expression ')' ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
 
+forEachLoop: 'for' '(' varDef 'in' (varAccess | value) ')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
+
 foriLoop: 'for' '(' varDef? ENDLINE expression? ENDLINE varAssignment?')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
-foriLoop0: 'for' '(' name ':' type ',' value '..' value ')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
+foriLoop0: 'for' '(' name COLON type ',' value '..' value ')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
 
 access: (PUBLIC | PROTECTED | PRIVATE)? STATIC? FINAL?;
+methodModifier: (ABSTRACT_KEYWORD | (PRE_MOD | POST_MOD))?;
+operator: PLUS | MINUS | DIV | DIVIDE | MULTIPLY | POWER | MOD;
 
-type: (anyType | linkType) ('['']')*;
+type: (anyType | linkType) ('['']')* (NNULL_OP | NULL_OP)?;
 anyType: name | primitiveType;
 linkType: '@' (
-    anyType |
-    CLASS_KEYWORD |
+    anyType           |
+    CLASS_KEYWORD     |
     INTERFACE_KEYWORD |
     ENUM_KEYWORD
 );
@@ -100,7 +138,7 @@ primitiveType:
     ;
 
 nullType:
-    'void'               |
+    'void'     |
     'null'
     ;
 
@@ -140,23 +178,23 @@ dot_name  : NAME0 ('.' NAME0)+ ;
 
 numeric_value: FLOAT_VAL | INT_VAL ;
 
-AS_KEYWORD    : 'as'    ;
-FOR_KEYWORD   : 'for'   ;
-IF_KEYWORD    : 'if'    ;
-ELSE_KEYWORD  : 'else'  ;
-SWITCH_KEYWORD: 'switch';
+AS_KEYWORD     : 'as'    ;
+FOR_KEYWORD    : 'for'   ;
+IF_KEYWORD     : 'if'    ;
+ELSE_KEYWORD   : 'else'  ;
+SWITCH_KEYWORD : 'switch';
 
-STR:    'str'    ;
-BOOL:   'bool'   ;
-INT:    'int'    ;
-FLOAT:  'float'  ;
-DOUBLE: 'double' ;
-LONG:   'long'   ;
-SHORT:  'short'  ;
-BYTE:   'byte'   ;
-OBJ:    'obj'    ;
-VOID:   'void'   ;
-NULL:   'null'   ;
+STR    : 'str'    ;
+BOOL   : 'bool'   ;
+INT    : 'int'    ;
+FLOAT  : 'float'  ;
+DOUBLE : 'double' ;
+LONG   : 'long'   ;
+SHORT  : 'short'  ;
+BYTE   : 'byte'   ;
+OBJ    : 'obj'    ;
+VOID   : 'void'   ;
+NULL   : 'null'   ;
 
 DIV     : 'div';
 MOD     : '%'  ;
@@ -175,21 +213,37 @@ FINAL      : 'fin'    | 'final'    ;
 TRUE : 'true'    ;
 FALSE: 'false'   ;
 
-AND: 'and' | '&&';
-OR:  'or'  | '||';
-NOT: 'not' | '!' ;
-XOR: 'xor' | '^^';
-BT : '>'         ;
-LT : '<'         ;
-EQ : '=='        ;
-NE : '!='        ;
-LE : '<='        ;
-BE : '>='        ;
+POST_MOD  : 'post'     ;
+PRE_MOD   : 'pre'      ;
+OP_OV_MOD : 'operator'
+    | 'op'             ;
 
-CLASS_KEYWORD     : 'class'    ;
-ABSTRACT_KEYWORD  : 'abstract' ;
-INTERFACE_KEYWORD : 'interface';
-ENUM_KEYWORD      : 'enum'     ;
+NNULL_OP : '!!' ;
+NULL_OP  : '??' ;
+
+AND: 'and' | '&&' ;
+OR:  'or'  | '||' ;
+NOT: 'not' | '!'  ;
+XOR: 'xor' | '^^' ;
+BT : '>'          ;
+LT : '<'          ;
+EQ : '=='         ;
+NEQ: '==='        ;
+NE : '!='         ;
+LE : '<='         ;
+BE : '>='         ;
+
+QUESTION_MARK : '?' ;
+COLON         : ':' ;
+
+EXTENDS: 'extends' | COLON;
+
+CLASS_KEYWORD      : 'class'      ;
+ABSTRACT_KEYWORD   : 'abstract'   ;
+INTERFACE_KEYWORD  : 'interface'  ;
+ANNOTATION_KEYWORD : 'annotation' ;
+ENUM_KEYWORD       : 'enum'       ;
+// NAMESPACE_KEYWORD  : 'namespace'  ;
 
 INT_VAL   : [0-9]+                            ;
 FLOAT_VAL : INT_VAL('.'INT_VAL)? ('f' | 'd')? ;

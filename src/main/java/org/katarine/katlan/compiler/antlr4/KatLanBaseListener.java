@@ -101,6 +101,30 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAnnotationDef(KatLanParser.AnnotationDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAnnotationDef(KatLanParser.AnnotationDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterNamespaceBlock(KatLanParser.NamespaceBlockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNamespaceBlock(KatLanParser.NamespaceBlockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterClassBlock(KatLanParser.ClassBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -108,6 +132,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitClassBlock(KatLanParser.ClassBlockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAnnotationClassBlock(KatLanParser.AnnotationClassBlockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAnnotationClassBlock(KatLanParser.AnnotationClassBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -156,6 +192,54 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitBool(KatLanParser.BoolContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterGenericTypeName(KatLanParser.GenericTypeNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGenericTypeName(KatLanParser.GenericTypeNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterGenericDef(KatLanParser.GenericDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGenericDef(KatLanParser.GenericDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterGenericTypeUse(KatLanParser.GenericTypeUseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGenericTypeUse(KatLanParser.GenericTypeUseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExtendsStatement(KatLanParser.ExtendsStatementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExtendsStatement(KatLanParser.ExtendsStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -228,6 +312,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitConstructorDef(KatLanParser.ConstructorDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOperatorOverDef(KatLanParser.OperatorOverDefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOperatorOverDef(KatLanParser.OperatorOverDefContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -449,6 +545,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterForEachLoop(KatLanParser.ForEachLoopContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitForEachLoop(KatLanParser.ForEachLoopContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterForiLoop(KatLanParser.ForiLoopContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -480,6 +588,30 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAccess(KatLanParser.AccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterMethodModifier(KatLanParser.MethodModifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMethodModifier(KatLanParser.MethodModifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOperator(KatLanParser.OperatorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOperator(KatLanParser.OperatorContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

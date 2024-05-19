@@ -78,6 +78,26 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitInterfaceDef(KatLanParser.InterfaceDefContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link KatLanParser#annotationDef}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnnotationDef(KatLanParser.AnnotationDefContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#annotationDef}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnnotationDef(KatLanParser.AnnotationDefContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#namespaceBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterNamespaceBlock(KatLanParser.NamespaceBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#namespaceBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitNamespaceBlock(KatLanParser.NamespaceBlockContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link KatLanParser#classBlock}.
 	 * @param ctx the parse tree
 	 */
@@ -87,6 +107,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitClassBlock(KatLanParser.ClassBlockContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#annotationClassBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnnotationClassBlock(KatLanParser.AnnotationClassBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#annotationClassBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnnotationClassBlock(KatLanParser.AnnotationClassBlockContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#block}.
 	 * @param ctx the parse tree
@@ -127,6 +157,46 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitBool(KatLanParser.BoolContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#genericTypeName}.
+	 * @param ctx the parse tree
+	 */
+	void enterGenericTypeName(KatLanParser.GenericTypeNameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#genericTypeName}.
+	 * @param ctx the parse tree
+	 */
+	void exitGenericTypeName(KatLanParser.GenericTypeNameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#genericDef}.
+	 * @param ctx the parse tree
+	 */
+	void enterGenericDef(KatLanParser.GenericDefContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#genericDef}.
+	 * @param ctx the parse tree
+	 */
+	void exitGenericDef(KatLanParser.GenericDefContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#genericTypeUse}.
+	 * @param ctx the parse tree
+	 */
+	void enterGenericTypeUse(KatLanParser.GenericTypeUseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#genericTypeUse}.
+	 * @param ctx the parse tree
+	 */
+	void exitGenericTypeUse(KatLanParser.GenericTypeUseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#varAssignment}.
 	 * @param ctx the parse tree
@@ -187,6 +257,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConstructorDef(KatLanParser.ConstructorDefContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#operatorOverDef}.
+	 * @param ctx the parse tree
+	 */
+	void enterOperatorOverDef(KatLanParser.OperatorOverDefContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#operatorOverDef}.
+	 * @param ctx the parse tree
+	 */
+	void exitOperatorOverDef(KatLanParser.OperatorOverDefContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#parameters}.
 	 * @param ctx the parse tree
@@ -368,6 +448,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitWhileLoopStatement(KatLanParser.WhileLoopStatementContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link KatLanParser#forEachLoop}.
+	 * @param ctx the parse tree
+	 */
+	void enterForEachLoop(KatLanParser.ForEachLoopContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#forEachLoop}.
+	 * @param ctx the parse tree
+	 */
+	void exitForEachLoop(KatLanParser.ForEachLoopContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link KatLanParser#foriLoop}.
 	 * @param ctx the parse tree
 	 */
@@ -397,6 +487,26 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAccess(KatLanParser.AccessContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#methodModifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterMethodModifier(KatLanParser.MethodModifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#methodModifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitMethodModifier(KatLanParser.MethodModifierContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#operator}.
+	 * @param ctx the parse tree
+	 */
+	void enterOperator(KatLanParser.OperatorContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#operator}.
+	 * @param ctx the parse tree
+	 */
+	void exitOperator(KatLanParser.OperatorContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#type}.
 	 * @param ctx the parse tree
