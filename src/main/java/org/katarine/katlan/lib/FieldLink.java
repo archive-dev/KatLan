@@ -3,39 +3,34 @@ package org.katarine.katlan.lib;
 import org.katarine.katlan.lib.annotations.KLAnnotatedElement;
 import org.katarine.katlan.lib.annotations.KLAnnotation;
 import org.katarine.katlan.lib.annotations.Target;
-import org.katarine.katlan.lib.structs.ImmutableArrayList;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.List;
 
 public class FieldLink extends FieldHandleable implements Serializable, Accessible, KLAnnotatedElement { // @fieldName
-    public final String fieldName;
-    public final Class<?> type;
-    public final Access access;
-    public final Ownership ownership;
-    public final org.katarine.katlan.lib.Modifier modifier;
-    public final Annotation[] annotations;
-    public final ImmutableArrayList<KLAnnotation> klAnnotations = new ImmutableArrayList<>();
-    public final Class<?> declaringClass;
-    /**
-     * Object that owns this field. May be null.
-     */
-    public final Object owner;
+    private final String fieldName;
+    private final Class<?> type;
+    private final ClassLink classLinkType;
+    private final Access access;
+    private final Ownership ownership;
+    private final org.katarine.katlan.lib.Modifier modifier;
+    private final Annotation[] annotations;
+    private KLAnnotation[] klAnnotations;
+    private final ClassLink declaringClassLink;
+    private final Class<?> declaringClass;
+    private final KLPackage pkg;
 
     private final Field field;
-    //TODO: add accessibility check
 
     /**
      * Base constructor for creating a FieldLink. May be used in any case, but recommended to use in KatLan context.
      * @param declaringClass Class which declares this field.
-     * @param owner Object that owns this field. May be null.
      * @param fieldName Name of field to be referenced.
      * @param klAnnotations KatLan annotations of this field. They are automatically set by compiler.
      */
-    public FieldLink(Class<?> declaringClass, Object owner, String fieldName, KLAnnotation... klAnnotations) {
+    public FieldLink(Class<?> declaringClass, String fieldName, KLAnnotation... klAnnotations) {
         this.fieldName = fieldName;
         this.declaringClass = declaringClass;
         try {
@@ -45,17 +40,16 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
         }
         this.type = field.getType();
 
+        this.declaringClassLink = ClassLink.of(this.declaringClass);
+        this.classLinkType = ClassLink.of(this.type);
+        this.pkg = KLPackage.of(this.declaringClass.getPackage());
         this.annotations = field.getAnnotations();
 
         try {
             if (Modifier.isStatic(this.field.getModifiers())) {
                 this.ownership = Ownership.STATIC;
-                this.owner = null;
             } else {
                 this.ownership = Ownership.INSTANCE;
-                if (owner == null)
-                    throw new NullPointerException("Instance is null on non-static field " + this.fieldName);
-                this.owner = owner;
             }
         } catch (NullPointerException e) {
             throw new RuntimeException(e);
@@ -70,7 +64,11 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
         else if (Modifier.isProtected(this.field.getModifiers())) this.access = Access.PROTECTED;
         else this.access = Access.PACKAGE_PRIVATE;
 
-        this.klAnnotations.addAll(List.of(klAnnotations));
+        this.klAnnotations = klAnnotations;
+    }
+
+    public FieldLink(Field field) {
+        this(field.getDeclaringClass(), field.getName());
     }
 
     public void set(Object instance, Object value) {
@@ -141,10 +139,6 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
         }
     }
 
-    public Object getWithHandlers() {
-        return getWithHandlers(this.owner);
-    }
-
     /**
      * This method does: <br>
      * <table>
@@ -175,10 +169,6 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
         postSetHandlers.forEach(h -> h.handle(instance, value));
     }
 
-    public void setWithHandlers(Object value) {
-        setWithHandlers(this.owner, value);
-    }
-
     @Override
     public Access access() {
         return this.access;
@@ -186,7 +176,7 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
 
     @Override
     public void checkAccess(Object caller) throws IllegalAccessException {
-        if (this.access != Access.PUBLIC && caller != this.owner) throw new IllegalAccessException("Instance can't access field " + this.fieldName);
+        if (this.access != Access.PUBLIC && caller.getClass().equals(this.declaringClass)) throw new IllegalAccessException("Instance can't access field " + this.fieldName);
         if (this.ownership != Ownership.STATIC && caller == null) throw new IllegalAccessException("Instance is null on non-static field " + this.fieldName);
 
         if (!this.field.canAccess(caller)) throw new IllegalAccessException("Instance can't access field " + this.fieldName);
