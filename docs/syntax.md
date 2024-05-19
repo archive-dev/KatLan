@@ -2,37 +2,19 @@
 
 ## Class Definitions
 
-1. Classes can be defined as unnamed. In that case class with FileName and public access will be created. If you need your class to be implemetation of other, then you write ```extends InterfaceName```.
-<br> To implement multiple classes you just add them separated by commas.
-Then you can define fields and/or methods:
-    ```
-     // file name is example.kat
+1. Classes can be defined as unnamed. In that case class with FileName and public access will be created.
+   If you need your class to be implementation of other, then you add ```extends InterfaceName```.
+   <br/> To implement multiple classes you just add them separated by commas.
+   With new syntax (since 05.19.2024 commit) all class methods and fields must be defined inside curly braces, otherwise
+   they will be [package methods and fields](#package-methods-and-fields) (you can define them before and after braces).
+   <br/>
+   Then you can define fields and/or methods:
 
-     extends Example1, Example2
+   ```
+   // file name is example.kat
+   { ... }
      
-     pub var name: str
-     
-     pub def getName(): str {
-         return name;    
-     }
-    ```
-
-    After all methods and field defined you can add code, that will automatically added to `main()` method:
-
-    ```
-     // file name is example.kat
-
-     extends Example1, Example2
-     
-     pub var name: str
-     
-     pub def getName(): str {
-         return name;    
-     }
-
-     print(new Example().getName()) // null
-    ```
-    That's it with unnamed classes.
+   ```
 
 2. Named classes are defined as usual, with `class` keyword. Class can be abstract and implement other classes:
 
@@ -169,10 +151,10 @@ There are 2 types of for loops in KatLan.
       // some code with list objects...
    }
    ```
-   
+
 ### Annotations
 
-Annotations can be used when defining a method, field or class, and when calling a method. <br>
+Annotations can be used when defining a method, field or class, and when calling a method. <br/>
 To use an annotation write ```$Annotation``` and add ```(parameters)``` if any
 
 ```
@@ -189,7 +171,54 @@ pub class Example {
 }
 ```
 
-While creating annotation in pure KatLan is not supported yet, you can still create them in Java
+To create one you need to create a new `annotation` class:
+
+```
+// this annotation is not java's one so
+// don't mess them up
+$Target(KLTarget.METHOD_CALL) 
+pub annotation ExampleAnnotation {
+   
+}
+```
+
+Because in KatLan annotations are not super special class types you can extend and implement other classes within
+your annotations:
+```
+$Target(KLTarget.METHOD_CALL)
+pub annotation ExampleAnnotation : ExampleInterface {
+   
+}
+```
+
+Annotation values are just fields, so you can use any type you want:
+
+```
+import java.net.URL
+
+$Target(KLTarget.METHOD_CALL)
+pub annotation ExampleAnnotation : ExampleInterface {
+   pub var url: URL
+}
+```
+
+To add `pre-action` and/or `post-action` handler you need to create a method with `pre` or `post` modifier:
+
+```
+import java.net.URL
+
+$Target(KLTarget.METHOD_CALL)
+pub annotation ExampleAnnotation : ExampleInterface {
+   pub var url: URL
+   
+   pub pre def handleCall(annotated: KLAnnotatedElement): void {
+      print(annotated.getThisTargetType())
+   }
+}
+```
+
+Or you can still create them in Java:
+
 ```Java
 @Target({KLTarget.METHOD_CALL})
 public class ExampleAnnotation extends KLAnnotation {
@@ -203,4 +232,32 @@ public class ExampleAnnotation extends KLAnnotation {
       System.out.println(annotatedObject);   
    }
 }
+```
+
+### Package methods and fields
+
+C# has `namespace`s and KatLan has `package`s. Package can have fields, methods and classes (almost like java).
+<br/> To define one create KatLan file and (optionally) add `package` keyword to it:
+
+```
+package org.example // this is optional
+
+
+```
+
+Then you start adding fields, methods and classes. Adding static modifiers to them is not necessary as compiler does it for you:
+
+```
+package org.example // this is optional
+
+pub var PI: float = 3.14f;
+
+pub def foo(): void {
+   print(bar)
+}
+
+pub class ExampleC {
+   pub fin var name: str
+}
+
 ```
