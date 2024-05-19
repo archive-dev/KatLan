@@ -4,18 +4,21 @@ import com.google.common.reflect.ClassPath;
 import org.antlr.v4.runtime.*;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;
+import org.cojen.maker.Variable;
 import org.katarine.katlan.compiler.antlr4.KatLanLexer;
 import org.katarine.katlan.compiler.antlr4.KatLanParser;
 import org.katarine.katlan.compiler.visitors.*;
+import org.katarine.katlan.lib.ClassLink;
+import org.katarine.katlan.lib.FieldLink;
+import org.katarine.katlan.lib.MethodLink;
+import org.katarine.katlan.lib.annotations.KLAnnotation;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Compiler {
     public final HashMap<String, Object> imports = new HashMap<>();
@@ -138,7 +141,7 @@ public class Compiler {
         imports.put("print", "System.out.println");
 
         try {
-            ClassPath.from(ClassLoader.getSystemClassLoader())
+            ClassPath.from(this.getClass().getClassLoader())
                     .getAllClasses()
                     .stream().filter(c -> c.getPackageName().startsWith("org.katarine.katlan.lib") || c.getPackageName().startsWith("org.katarine.compiler"))
                     .forEach(c -> imports.put(c.getSimpleName(), c));
@@ -150,7 +153,7 @@ public class Compiler {
     public final HashMap<String, FieldMaker> fields = new HashMap<>();
     public String package_;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         for (var f : args) {
             new Compiler().compile(f);
         }
@@ -165,15 +168,39 @@ public class Compiler {
         KatLanParser.ClassContext cc = klp.class_();
         ParserRuleContext r = new KLClassVisitor().visitClass(cc);
         String className = extractClassName(fileName);
-        String packagePath = new KLPackageVisitor().visit(cc.package_());
+        String packagePath = getInputFile(fileName).getParentFile().getPath().replace(".", "/");
+        if (cc.package_() != null) {
+            packagePath = new KLPackageVisitor().visit(cc.package_()).replace(".", "/");
+        }
         File output = prepareOutputFile(packagePath, className, r);
 
         try (URLClassLoader loader = new URLClassLoader(new URL[]{output.getParentFile().toURI().toURL()})) {
             ClassMaker cm = setupClassMaker(loader, packagePath, className, r);
+
+            initKLClass(cm, r);
+
             handleImportsAndFields(cm, cc);
             handleMethods(cm, r);
             writeClassToFile(cm, output);
         }
+    }
+
+    private final HashMap<String, Variable> clinitVars = new HashMap<>();
+
+    @SuppressWarnings("unchecked")
+    public final HashMap<String, Variable> getClinitVars() {
+        return (HashMap<String, Variable>) clinitVars.clone();
+    }
+
+    private <T> void initKLClass(ClassMaker cm, T[] t) {
+        if (t[0] instanceof KatLanParser.ClassBlockContext)
+            initKLClass(cm, ((KatLanParser.ClassBlockContext[]) t));
+        else if (t[0] instanceof KatLanParser.NamespaceBlockContext)
+            initKLClass(cm, ((KatLanParser.NamespaceBlockContext[]) t));
+    }
+
+    private File getInputFile(String fileName) {
+        return new File(fileName);
     }
 
     private String extractClassName(String fileName) {
@@ -215,11 +242,44 @@ public class Compiler {
         return className;
     }
 
+    private void initKLClass(ClassMaker cm, ParserRuleContext classBlock) {
+        cm.addField(ClassLink.class, "klclass").public_().final_().static_();
+        var clinit = cm.addClinit();
+        int methodCount = 0;
+        int fieldCount = 0;
+
+        for (var cb : classBlock.children) {
+            if (cb instanceof KatLanParser.NamespaceBlockContext) {
+                fieldCount += ((KatLanParser.NamespaceBlockContext) cb).var().size();
+                methodCount += ((KatLanParser.NamespaceBlockContext) cb).methodDef().size();
+            } else if (cb instanceof KatLanParser.ClassBlockContext) {
+                fieldCount += ((KatLanParser.ClassBlockContext) cb).var().size();
+                methodCount += ((KatLanParser.ClassBlockContext) cb).methodDef().size();
+            }
+        }
+
+        var methodLinks = clinit.var(MethodLink[].class).set(clinit.new_(MethodLink[].class, methodCount));
+        var fieldLinks = clinit.var(FieldLink[].class).set(clinit.new_(FieldLink[].class, fieldCount));
+        var klAnnotations = clinit.var(KLAnnotation[].class).set(clinit.new_(KLAnnotation[].class, 0));
+
+        clinitVars.put("methodLinks", methodLinks);
+        clinitVars.put("fieldLinks", fieldLinks);
+        clinitVars.put("klClassAnnotations", klAnnotations);
+
+        clinit.field("klclass").set(clinit.new_(ClassLink.class, clinit.class_(), methodLinks, fieldLinks, klAnnotations));
+    }
+
     private void handleImportsAndFields(ClassMaker cm, KatLanParser.ClassContext r) {
         KLImportVisitor importVisitor = new KLImportVisitor(cm);
-        imports.putAll(importVisitor.visit(r.importBlock()));
+        if (r.importBlock() != null)
+            imports.putAll(importVisitor.visit(r.importBlock()));
         KLFieldsVisitor fieldsVisitor = new KLFieldsVisitor(cm, this);
-        fields.putAll(fieldsVisitor.visit(r));
+        var ctx = r.children.stream().filter(c ->
+                (c instanceof KatLanParser.ClassDefContext)
+                        || (c instanceof KatLanParser.UnnamedClassDefContext)
+                        || (c instanceof KatLanParser.InterfaceDefContext)
+                        || (c instanceof KatLanParser.AnnotationDefContext)).findFirst().orElseGet(null);
+        fields.putAll(fieldsVisitor.visit(ctx));
     }
 
     private void handleMethods(ClassMaker cm, ParserRuleContext r) {
