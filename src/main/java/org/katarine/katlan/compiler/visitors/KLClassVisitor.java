@@ -9,11 +9,12 @@ public class KLClassVisitor extends KatLanBaseVisitor<ParserRuleContext> {
     public ParserRuleContext visitClass(KatLanParser.ClassContext ctx) {
         if (ctx.classDef() != null) {
             return ctx.classDef();
-        }
-        else if (ctx.unnamedClassDef() != null) {
+        } else if (ctx.unnamedClassDef() != null) {
             return ctx.unnamedClassDef();
-        } else {
+        } else if (ctx.interfaceDef() != null) {
             return ctx.interfaceDef();
+        } else {
+            return ctx.annotationDef();
         }
     }
 }
