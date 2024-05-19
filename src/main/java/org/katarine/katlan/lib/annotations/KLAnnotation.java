@@ -7,11 +7,12 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 
-public abstract class KLAnnotation implements Serializable {
-    public final Object annotatedObject;
+public abstract class KLAnnotation implements Serializable, Annotation {
+    public final KLAnnotatedElement annotatedObject;
 
     public KLAnnotation(KLAnnotatedElement annotatedObject) {
         this.annotatedObject = annotatedObject;
+        Annotations.registerAnnotation(this);
     }
 
     public static Class<? extends KLAnnotation> from(Class<? extends Annotation> annotation) {
@@ -37,5 +38,10 @@ public abstract class KLAnnotation implements Serializable {
         @SuppressWarnings("unchecked")
         Class<? extends KLAnnotation> ret = (Class<? extends KLAnnotation>) cm.finish();
         return ret;
+    }
+
+    @Override
+    public final Class<? extends Annotation> annotationType() {
+        return this.getClass();
     }
 }
