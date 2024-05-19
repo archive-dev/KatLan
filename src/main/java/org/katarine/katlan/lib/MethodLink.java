@@ -1,11 +1,8 @@
 package org.katarine.katlan.lib;
 
 import org.katarine.katlan.compiler.annotations.KLAnnotationWrapper;
-import org.katarine.katlan.lib.annotations.Annotations;
-import org.katarine.katlan.lib.annotations.KLAnnotatedElement;
-import org.katarine.katlan.lib.annotations.KLAnnotation;
-import org.katarine.katlan.lib.annotations.Target;
-import org.katarine.katlan.lib.structs.ImmutableArrayList;
+import org.katarine.katlan.lib.annotations.*;
+import org.katarine.katlan.lib.annotations.Package;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -14,21 +11,24 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class MethodLink extends Handleable implements Serializable, Accessible, KLAnnotatedElement { // @methodName(pType1, pType2...)
-    public final String methodName;
-    public final Class<?>[] parameterTypes;
-    public final Class<?> returnType;
-    public final Class<?> declaringClass;
+    private final String methodName;
+    private final Class<?>[] parameterTypes;
+    private final Class<?> returnType;
+    private final Class<?> declaringClass;
+    private final ClassLink declaringKLClass;
+    private final KLPackage declaringPackage;
 
-    public final Annotation[] annotations;
-    public final ImmutableArrayList<KLAnnotation> klAnnotations = new ImmutableArrayList<>();
-    public final Access access;
-    public final org.katarine.katlan.lib.Modifier modifier;
-    public final Ownership ownership;
+    private final Annotation[] annotations;
+    private final Access access;
+    private final org.katarine.katlan.lib.Modifier modifier;
+    private final Operator.Operators operator;
+    private final Ownership ownership;
     private final Method method;
     private final ArrayList<KLAnnotationWrapper<?>> wrappers = new ArrayList<>();
+
+    private KLAnnotation[] klAnnotations;
 
     public MethodLink(Class<?> declaringClass, String methodName, Class<?>... parameterTypes) {
         this(declaringClass, methodName, new KLAnnotation[0], parameterTypes);
@@ -44,7 +44,7 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
             throw new RuntimeException(e);
         }
         this.annotations = this.method.getAnnotations();
-        this.klAnnotations.addAll(List.of(annotations));
+        this.klAnnotations = annotations;
         this.wrappers.addAll(Arrays.stream(annotations)
                 .map(KLAnnotationWrapper::new)
                 .toList()
@@ -53,20 +53,36 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
         try {
             if (Modifier.isStatic(this.method.getModifiers())) {
                 this.ownership = Ownership.STATIC;
-//                this.owner = null;
             } else {
                 this.ownership = Ownership.INSTANCE;
-//                if (owner == null)
-//                    throw new NullPointerException("Instance is null on non-static method " + this.methodName);
-//                this.owner = owner;
             }
         } catch (NullPointerException e) {
             throw new RuntimeException(e);
         }
 
+        Operator op = null;
+
         if (Modifier.isAbstract(this.method.getModifiers())) this.modifier = org.katarine.katlan.lib.Modifier.ABSTRACT;
         else if (Modifier.isFinal(this.method.getModifiers())) this.modifier = org.katarine.katlan.lib.Modifier.FINAL;
+        else if (this.method.isAnnotationPresent(BeforeMethodCall.class)) this.modifier = MethodModifier.PRE;
+        else if (this.method.isAnnotationPresent(AfterMethodCall.class)) this.modifier = MethodModifier.POST;
+        else if (this.method.isAnnotationPresent(Package.class)) this.modifier = MethodModifier.PACKAGE;
+        else if ((op = this.method.getAnnotation(Operator.class)) != null) this.modifier = MethodModifier.OPERATOR;
         else this.modifier = org.katarine.katlan.lib.Modifier.NONE;
+
+        if (this.modifier == MethodModifier.OPERATOR) {
+            this.operator = op.value();
+        } else {
+            this.operator = null;
+        }
+
+        if (this.modifier!=MethodModifier.PACKAGE) {
+            this.declaringKLClass = ClassLink.of(declaringClass);
+            this.declaringPackage = null;
+        } else {
+            this.declaringKLClass = null;
+            this.declaringPackage = Packages.getPackage(this.declaringClass.getPackageName());
+        }
 
         if (Modifier.isPublic(this.method.getModifiers())) this.access = Access.PUBLIC;
         else if (Modifier.isPrivate(this.method.getModifiers())) this.access = Access.PRIVATE;
@@ -74,7 +90,11 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
         else this.access = Access.PACKAGE_PRIVATE;
 
         for (int i = 0; i < wrappers.size(); i++) {
-            wrappers.get(i).handle(klAnnotations.get(i), Annotations.CallType.ON_METHOD_INIT);
+            wrappers.get(i).handle(klAnnotations[i], CallType.ON_METHOD_INIT);
+        }
+
+        if (declaringPackage != null) {
+            declaringPackage.registerMethod(this);
         }
     }
 
@@ -92,16 +112,37 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
             this.ownership = Ownership.INSTANCE;
         }
 
-//        this.owner = null; // this happens because there is no way of getting the owner from Method only
+        Operator op = null;
 
         if (Modifier.isAbstract(this.method.getModifiers())) this.modifier = org.katarine.katlan.lib.Modifier.ABSTRACT;
         else if (Modifier.isFinal(this.method.getModifiers())) this.modifier = org.katarine.katlan.lib.Modifier.FINAL;
+        else if (this.method.isAnnotationPresent(BeforeMethodCall.class)) this.modifier = MethodModifier.PRE;
+        else if (this.method.isAnnotationPresent(AfterMethodCall.class)) this.modifier = MethodModifier.POST;
+        else if (this.method.isAnnotationPresent(Package.class)) this.modifier = MethodModifier.PACKAGE;
+        else if ((op = this.method.getAnnotation(Operator.class)) != null) this.modifier = MethodModifier.OPERATOR;
         else this.modifier = org.katarine.katlan.lib.Modifier.NONE;
+
+        if (this.modifier == MethodModifier.OPERATOR) {
+            this.operator = op.value();
+        } else {
+            this.operator = null;
+        }
+
+        if (this.modifier!=MethodModifier.PACKAGE) {
+            this.declaringKLClass = ClassLink.of(declaringClass);
+            this.declaringPackage = null;
+        } else {
+            this.declaringKLClass = null;
+            this.declaringPackage = Packages.getPackage(this.declaringClass.getPackageName());
+        }
 
         if (Modifier.isPublic(this.method.getModifiers())) this.access = Access.PUBLIC;
         else if (Modifier.isPrivate(this.method.getModifiers())) this.access = Access.PRIVATE;
         else if (Modifier.isProtected(this.method.getModifiers())) this.access = Access.PROTECTED;
         else this.access = Access.PACKAGE_PRIVATE;
+
+        if (declaringPackage !=null)
+            declaringPackage.registerMethod(this);
     }
 
     public final Object invoke(Object caller, Object... args) throws InvocationTargetException, IllegalAccessException {
@@ -149,6 +190,55 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
 
     @Override
     public KLAnnotation[] getKlAnnotations() {
-        return this.klAnnotations.toArray(KLAnnotation[]::new);
+        return Arrays.copyOf(klAnnotations, klAnnotations.length);
+    }
+
+    public final String getName() {
+        return methodName;
+    }
+
+    public final Class<?>[] getParameterTypes() {
+        return parameterTypes;
+    }
+
+    public final Class<?> getReturnType() {
+        return returnType;
+    }
+
+    public final Class<?> getDeclaringClass() {
+        return declaringClass;
+    }
+
+    public final ClassLink getDeclaringKLClass() {
+        return declaringKLClass;
+    }
+
+    public final KLPackage getDeclaringPackage() {
+        return declaringPackage;
+    }
+
+    @Override
+    public final Annotation[] getAnnotations() {
+        return annotations;
+    }
+
+    public final Access getAccess() {
+        return access;
+    }
+
+    public final org.katarine.katlan.lib.Modifier getModifier() {
+        return modifier;
+    }
+
+    public final Operator.Operators getOperator() {
+        return operator;
+    }
+
+    public final Ownership getOwnership() {
+        return ownership;
+    }
+
+    public final Method getMethod() {
+        return method;
     }
 }
