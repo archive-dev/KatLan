@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     id("java")
     antlr
@@ -38,6 +36,19 @@ tasks.shadowJar {
     archiveBaseName = ""
     manifest {
         attributes.put("Main-Class", "org.katarine.katlan.compiler.Compiler")
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["java"])
+                groupId = "org.katarine"
+                artifactId = "KatLan"
+                version = "pre-0.1"
+            }
+        }
     }
 }
 
