@@ -1,16 +1,18 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("java")
     antlr
+    id("com.github.johnrengelman.shadow") version ("8.1.1")
     id("maven-publish")
 }
 
 group = "org.katarine"
-version = "1.0-SNAPSHOT"
-
+version = "pre-0.1"
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
+    maven { url = uri("https://jitpack.io") }
 
 }
 
@@ -29,6 +31,14 @@ dependencies {
 java {
     targetCompatibility = JavaVersion.VERSION_17
     sourceCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.shadowJar {
+    archiveFileName = "${rootProject.name}-$version.jar"
+    archiveBaseName = ""
+    manifest {
+        attributes.put("Main-Class", "org.katarine.katlan.compiler.Compiler")
+    }
 }
 
 tasks.test {
