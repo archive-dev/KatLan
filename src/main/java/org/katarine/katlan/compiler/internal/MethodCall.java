@@ -4,16 +4,17 @@ import org.katarine.katlan.compiler.annotations.KLAnnotationWrapper;
 import org.katarine.katlan.lib.MethodLink;
 import org.katarine.katlan.lib.annotations.*;
 
+import java.lang.Override;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-public class MethodCall implements KLAnnotatedElement {
+public final class MethodCall implements KLAnnotatedElement {
     public final Object caller;
     public final Object[] args;
 
     public final MethodLink ml;
-    private KLAnnotation[] annotations;
+    private final KLAnnotation[] annotations;
 
     private final Hashtable<KLAnnotationWrapper<?>, KLAnnotation> wrappers;
 
