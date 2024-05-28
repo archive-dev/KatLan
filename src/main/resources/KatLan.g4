@@ -1,29 +1,28 @@
 grammar KatLan;
 
-
 class: ENDLINE* package? importBlock? (classDef | interfaceDef | unnamedClassDef | annotationDef) ENDLINE*;
 
 package: 'package' name ENDLINE+;
 importBlock: (importStatement)+;
 importStatement: 'import' name ('as' name)? ENDLINE+;
 
-unnamedClassDef: (EXTENDS name (',' name)* ENDLINE+)? namespaceBlock? ENDLINE+ ('{' ENDLINE* classBlock? ENDLINE* '}')? ENDLINE+ namespaceBlock?;
+unnamedClassDef: packageBlock? ENDLINE* (EXTENDS name (',' name)* ENDLINE*)? ('{' ENDLINE* classBlock? ENDLINE* '}')? ENDLINE* packageBlock?;
 
-classDef: annotationCall* access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (EXTENDS name (',' name)*)?
+classDef: annotationCall* modifier? access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (EXTENDS name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
-interfaceDef: annotationCall* access INTERFACE_KEYWORD name (EXTENDS name (',' name)*)?
+interfaceDef: annotationCall* modifier? access INTERFACE_KEYWORD name (EXTENDS name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
-annotationDef: annotationCall* access ANNOTATION_KEYWORD name (EXTENDS name (',' name)*)?
+annotationDef: annotationCall* modifier? access ANNOTATION_KEYWORD name (EXTENDS name (',' name)*)?
         '{' ENDLINE* annotationClassBlock ENDLINE* '}';
 
-namespaceBlock: (
+packageBlock: (
     (var            |
     methodDef       |
     classDef        |
     interfaceDef    |
     annotationDef
     )
-    ENDLINE+
+    ENDLINE*
     )+
 ;
 
@@ -36,7 +35,7 @@ classBlock: (
     interfaceDef    |
     annotationDef
     )
-    ENDLINE+
+    ENDLINE*
     )+
 ;
 
@@ -45,7 +44,7 @@ annotationClassBlock: (
     methodDef       |
     classDef        |
     interfaceDef)
-    ENDLINE+
+    ENDLINE*
     )+
 ;
 
@@ -66,8 +65,8 @@ varAccess : annotationCall* NAME0 ('.' varAccess)?;
 arrayAccess: varAccess arrayAccess0+;
 arrayAccess0: ('[' arithmeticExpression ']');
 
-methodDef: annotationCall* access methodModifier 'def' name '(' parameters? ')' COLON type '{' ENDLINE* block ENDLINE* '}';
-constructorDef: annotationCall* access 'new' name '(' parameters? ')' '{' ENDLINE* block ENDLINE* '}';
+methodDef: annotationCall* modifier? access methodModifier 'def' name '(' parameters? ')' COLON type ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
+constructorDef: annotationCall* modifier? access 'new' name '(' parameters? ')' '{' ENDLINE* block ENDLINE* '}';
 operatorOverDef: annotationCall* OP_OV_MOD operator '(' parameter ')' '{' ENDLINE* block ENDLINE* '}';
 
 parameters: (parameter) (',' parameter)*;
@@ -112,7 +111,8 @@ foriLoop: 'for' '(' varDef? ENDLINE expression? ENDLINE varAssignment?')' ENDLIN
 foriLoop0: 'for' '(' name COLON type ',' value '..' value ')' ENDLINE* (('{' ENDLINE* block '}') | lineBlock);
 
 access: (PUBLIC | PROTECTED | PRIVATE)? STATIC? FINAL?;
-methodModifier: (ABSTRACT_KEYWORD | (PRE_MOD | POST_MOD))?;
+methodModifier: OVERRIDE? (ABSTRACT_KEYWORD | (PRE_MOD | POST_MOD))?;
+modifier: name (name)*;
 operator: PLUS | MINUS | DIV | DIVIDE | MULTIPLY | POWER | MOD;
 
 type: (anyType | linkType) ('['']')* (NNULL_OP | NULL_OP)?;
@@ -209,6 +209,7 @@ PRIVATE    : 'priv'   | 'private'  ;
 PROTECTED  : 'prot'   | 'protected';
 STATIC     : 'static'              ;
 FINAL      : 'fin'    | 'final'    ;
+OVERRIDE   : 'override'            ;
 
 TRUE : 'true'    ;
 FALSE: 'false'   ;
