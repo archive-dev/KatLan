@@ -15,6 +15,7 @@ public @interface Target {
         CLASS(ElementType.TYPE),
         METHOD(ElementType.METHOD),
         FIELD(ElementType.FIELD),
+        FIELD_USE(null),
         PARAMETER(ElementType.PARAMETER),
         CONSTRUCTOR(ElementType.CONSTRUCTOR),
         LOCAL_VARIABLE(ElementType.LOCAL_VARIABLE),
