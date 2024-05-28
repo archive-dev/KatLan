@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMaker>> {
-    Compiler compiler;
-    ClassMaker cm;
+    private final Compiler compiler;
+    private final ClassMaker cm;
 
     public KLFieldsVisitor(ClassMaker cm, Compiler compiler) {
         this.cm = cm;
@@ -26,7 +26,7 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
     }
 
     @Override
-    public HashMap<String, FieldMaker> visitNamespaceBlock(KatLanParser.NamespaceBlockContext ctx) {
+    public HashMap<String, FieldMaker> visitPackageBlock(KatLanParser.PackageBlockContext ctx) {
         return addFields(ctx);
     }
 
@@ -93,7 +93,7 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
         return map;
     }
 
-    private HashMap<String, FieldMaker> addFields(KatLanParser.NamespaceBlockContext cb) {
+    private HashMap<String, FieldMaker> addFields(KatLanParser.PackageBlockContext cb) {
         final HashMap<String, FieldMaker> map = new HashMap<>();
 
         if (cb==null) return map;
@@ -163,9 +163,9 @@ public class KLFieldsVisitor extends KatLanBaseVisitor<HashMap<String, FieldMake
             if (vd.access().STATIC() != null)    fm.static_();
             if (vd.access().FINAL() != null)     fm.final_();
 
-            if (vd0.value()!=null) {
-                System.out.println("sorry! no init");
-            }
+//            if (vd0.value()!=null) {
+//                System.out.println("sorry! no init");
+//            }
             var fieldLink = clinit.var(FieldLink.class);
             fieldLink.set(clinit.new_(FieldLink.class, clinit.class_(), fm.name()));
 
