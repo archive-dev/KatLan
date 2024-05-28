@@ -13,17 +13,20 @@ import java.util.List;
 
 public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
     private final MethodMaker mm;
-    final HashMap<String, Integer> vars = new HashMap<>(); // <name, index>
+    /**
+     * parameters
+     */
+    final HashMap<String, Integer> params = new HashMap<>(); // <name, index>
     final HashMap<String, Variable> localVars = new HashMap<>();
     final Compiler compiler;
 
     public final VariableGetter vg;
 
-    public KLMethodVisitor(MethodMaker mm, Compiler compiler, HashMap<String, Integer> vars) {
+    public KLMethodVisitor(MethodMaker mm, Compiler compiler, HashMap<String, Integer> params) {
         this.mm = mm;
         this.compiler = compiler;
-        this.vars.putAll(vars);
-        vg = new VariableGetter(mm, this.compiler, this.vars, this.localVars);
+        this.params.putAll(params);
+        vg = new VariableGetter(mm, this.compiler, this.params, this.localVars);
     }
 
     @Override
@@ -134,7 +137,6 @@ public class KLMethodVisitor extends KatLanBaseVisitor<Variable> {
         } else {
             visitBlock(ctx.block());
         }
-        System.out.println(ctx.getText());
 
         return null;
     }
