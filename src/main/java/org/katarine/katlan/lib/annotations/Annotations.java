@@ -1,6 +1,5 @@
 package org.katarine.katlan.lib.annotations;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -8,10 +7,10 @@ import java.util.Hashtable;
 public final class Annotations {
     private Annotations(){}
 
-    private static final Hashtable<KLAnnotatedElement, ArrayList<Annotation>> annotations = new Hashtable<>();
-    private static final HashSet<Annotation> registeredAnnotations = new HashSet<>();
+    private static final Hashtable<KLAnnotatedElement, ArrayList<KLAnnotation>> annotations = new Hashtable<>();
+    private static final HashSet<KLAnnotation> registeredAnnotations = new HashSet<>();
 
-    static void registerAnnotation(Annotation annotation, KLAnnotatedElement annotatedElement) {
+    static void registerAnnotation(KLAnnotation annotation, KLAnnotatedElement annotatedElement) {
         if (registeredAnnotations.contains(annotation)) return;
         annotations.computeIfAbsent(annotatedElement, k -> new ArrayList<>(4));
         annotations.get(annotatedElement).add(annotation);
@@ -22,7 +21,7 @@ public final class Annotations {
         registerAnnotation(annotation, annotation.annotatedObject);
     }
 
-    public static Annotation[] getAnnotations(KLAnnotatedElement annotatedElement) {
-        return annotatedElement.getAnnotations();
+    public static KLAnnotation[] getAnnotations(KLAnnotatedElement annotatedElement) {
+        return annotatedElement.getKlAnnotations();
     }
 }
