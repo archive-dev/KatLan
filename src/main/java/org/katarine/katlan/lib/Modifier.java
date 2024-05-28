@@ -7,5 +7,5 @@ public class Modifier implements Serializable {
     public static final Modifier FINAL = new Modifier();
     public static final Modifier ABSTRACT = new Modifier();
 
-    protected Modifier() {}
+    public Modifier() {}
 }
