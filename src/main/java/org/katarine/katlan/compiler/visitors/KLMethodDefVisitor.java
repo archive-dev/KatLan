@@ -10,14 +10,17 @@ import org.katarine.katlan.lib.ClassLink;
 import org.katarine.katlan.lib.MethodLink;
 import org.katarine.katlan.lib.annotations.AfterMethodCall;
 import org.katarine.katlan.lib.annotations.BeforeMethodCall;
+import org.katarine.katlan.lib.annotations.KLAnnotation;
+import org.katarine.katlan.lib.annotations.Package;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
-    ClassMaker cm;
-    Compiler compiler;
+    private ClassMaker cm;
+    private Compiler compiler;
+    private boolean isNamespace = false;
 
     public KLMethodDefVisitor(ClassMaker cm, Compiler compiler) {
         this.cm = cm;
@@ -32,17 +35,28 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
 
     private int counter = 0;
 
-    private void processMethod(KatLanParser.MethodDefContext method, MethodMaker methodDefs, Variable klClass) {
-        List<Object> pTypes = extractParameterTypes(method, methodDefs);
+    private void processMethod(KatLanParser.MethodDefContext method, MethodMaker clinit, Variable klClass) {
+        List<Object> pTypes = extractParameterTypes(method, clinit);
         MethodMaker mm = addMethodWithModifiers(method, pTypes);
-
+        if (isNamespace) mm.addAnnotation(Package.class, true);
         if (method.methodModifier().PRE_MOD()!=null) mm.addAnnotation(BeforeMethodCall.class, true);
         if (method.methodModifier().POST_MOD()!=null) mm.addAnnotation(AfterMethodCall.class, true);
 
-        Variable methodLink = createMethodLink(methodDefs, mm, pTypes);
-        handleAnnotationCalls(method, methodDefs, methodLink);
-        compiler.getClinitVars().get("methodLinks").aset(counter++, methodLink);
-        new KLMethodVisitor(mm, this.compiler, new HashMap<>()).visitBlock(method.block());
+        Variable annotationsArray =
+                clinit.var(KLAnnotation[].class).set(
+                        clinit.new_(
+                                KLAnnotation[].class,
+                                method.annotationCall()!=null ? method.annotationCall().size() : 0
+                        )
+                );
+        Variable methodLink = createMethodLink(method, clinit, mm, annotationsArray, pTypes);
+        handleAnnotationCalls(method, clinit, methodLink, annotationsArray);
+        if (!isNamespace) {
+            compiler.getClinitVars().get("methodLinks").aset(counter++, methodLink);
+        } else {
+            mm.static_();
+        }
+        new KLMethodVisitor(mm, this.compiler, new HashMap<>()).visit(method.block()==null ? method.lineBlock() : method.block());
     }
 
     private List<Object> extractParameterTypes(KatLanParser.MethodDefContext method, MethodMaker methodDef) {
@@ -58,6 +72,9 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
 
     private MethodMaker addMethodWithModifiers(KatLanParser.MethodDefContext method, List<Object> pTypes) {
         MethodMaker mm = cm.addMethod(getType(method.type().getText()), method.name().getText(), pTypes.toArray());
+        if (method.annotationCall()!=null) {
+        }
+
         setAccessModifiers(mm, method.access());
         return mm;
     }
@@ -70,195 +87,49 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
         if (access.FINAL() != null) mm.final_();
     }
 
-    private void handleMethodAnnotations(KatLanParser.MethodDefContext method, MethodMaker methodDefs, MethodMaker mm, Variable klClass, List<Object> pTypes) {
-        Variable methodLink = createMethodLink(methodDefs, mm, pTypes);
-        Variable annotationCalls = handleAnnotationCalls(method, methodDefs, methodLink);
-        klClass.field("methodLinks").invoke("add", methodLink);
-    }
+//    private void handleMethodAnnotations(
+//        KatLanParser.MethodDefContext method,
+//        MethodMaker clinit,
+//        MethodMaker mm,
+//        Variable klClass,
+//        List<Object> pTypes
+//    ) {
+//        Variable methodLink = createMethodLink(method, clinit, mm, pTypes);
+//        Variable annotationCalls = handleAnnotationCalls(method, clinit, methodLink);
+//        klClass.field("methodLinks").invoke("add", methodLink);
+//    }
 
-    private Variable createMethodLink(MethodMaker methodDefs, MethodMaker mm, List<Object> pTypes) {
+    private Variable createMethodLink(
+            KatLanParser.MethodDefContext method,
+            MethodMaker clinit,
+            MethodMaker mm,
+            Variable annotations,
+            List<Object> pTypes
+    ) {
         List<Object> params = new ArrayList<>();
-        params.add(methodDefs.class_());
+        params.add(clinit.class_());
         params.add(mm.name());
+        params.add(annotations);
         params.addAll(pTypes);
 
-        Variable methodLink = methodDefs.new_(MethodLink.class, params.toArray(Object[]::new));
+        Variable methodLink = clinit.new_(MethodLink.class, params.toArray(Object[]::new));
         return methodLink;
     }
 
-    private Variable handleAnnotationCalls(KatLanParser.MethodDefContext method, MethodMaker methodDefs, Variable methodLink) {
-        for (KatLanParser.AnnotationCallContext annotationCall : method.annotationCall()) {
+    private Variable handleAnnotationCalls(
+            KatLanParser.MethodDefContext method,
+            MethodMaker methodDefs,
+            Variable methodLink,
+            Variable annotationArray
+    ) {
+        List<KatLanParser.AnnotationCallContext> call = method.annotationCall();
+        for (int i = 0; i < call.size(); i++) {
+            KatLanParser.AnnotationCallContext annotationCall = call.get(i);
             Variable annotation = new VariableGetter(methodDefs, this.compiler, new HashMap<>(), new HashMap<>()).visitAnnotationCall(annotationCall, methodLink);
-            methodLink.field("klAnnotations").invoke("add", annotation);
+            annotationArray.aset(i, annotation);
         }
         return methodLink;
     }
-
-//    @Override
-//    public Void visitAnnotationClassBlock(KatLanParser.AnnotationClassBlockContext ctx) {
-//        if (ctx==null) return null;
-//        var methods = ctx.methodDef();
-//        HashMap<MethodMaker, Pair<HashMap<String, Integer>, KatLanParser.BlockContext>> map = new HashMap<>();
-//
-//        HashMap<MethodLink, List<KLAnnotation>> methodLinks = new HashMap<>();
-//        // TODO: add annotations
-//        cm.addField(ClassLink.class, "klclass").public_().static_().final_();
-//
-//        MethodMaker methodDefs = cm.addClinit();
-//        Variable klClass = methodDefs.field("klclass").set(methodDefs.new_(ClassLink.class, methodDefs.class_()));
-//
-//        for (var method : methods) {
-//            HashMap<String, Integer> vars = new HashMap<>();
-//
-//            Object retType = getType(method.type().getText());
-//
-//            List<Object> pTypes = new ArrayList<>();
-//            Variable pTypesArrV = methodDefs.new_(Class[].class, 1);
-//
-//            int i = 0;
-//            if (method.parameters() != null) {
-//                for (var p : method.parameters().parameter()) {
-//                    Object type = getType(p.type().getText());
-//                    pTypes.add(type);
-//                    vars.put(p.name().getText(), i);
-//                    pTypesArrV.aset(i, methodDefs.var(type).classType());
-//                    i++;
-//                }
-//            }
-//
-//            MethodMaker mm = cm.addMethod(retType, method.name().getText(), pTypes.toArray(Object[]::new));
-//
-//            if (method.access().PUBLIC() != null)    mm.public_();
-//            if (method.access().PRIVATE() != null)   mm.private_();
-//            if (method.access().PROTECTED() != null) mm.protected_();
-//            if (method.access().STATIC() != null)    mm.static_();
-//            if (method.access().FINAL() != null)     mm.final_();
-//
-//            Variable cl = methodDefs.var(Class.class).set(methodDefs.class_());
-//            System.out.println(cl.classType() + " " + method.name().getText() + " " + pTypesArrV.classType());
-//
-//            Variable ml = methodDefs.new_(MethodLink.class, cl, method.name().getText(), pTypesArrV);
-//            Variable annotationCalls = new VariableGetter(methodDefs, this.compiler, new HashMap<>(), new HashMap<>())
-//                    .visitAnnotationCalls(method.annotationCall(), ml);
-//            List<KatLanParser.AnnotationCallContext> annotationCall = method.annotationCall();
-//            for (int j = 0; j < annotationCall.size(); j++) {
-//                ml.field("klAnnotations").invoke("add", annotationCalls.aget(j));
-//            }
-//            ml.field("klAnnotations").invoke("makeImmutable");
-//            klClass.field("methodLinks").invoke("add", ml);
-//
-//            map.put(mm, new Pair<>(vars, method.block()));
-//        }
-//
-//
-//        for (var mm : map.entrySet()) {
-//            var methodVisitor = new KLMethodVisitor(mm.getKey(), this.compiler, mm.getValue().a); // xd renaming
-//            try {
-//                methodVisitor.localVars.put("this", mm.getKey().this_());
-//            } catch (IllegalStateException ignored) {} // this is thrown when the method is static, so no problems
-//            methodVisitor.visitLines(mm.getValue().b.lineBlock());
-//        }
-//
-//
-//        return null;
-//    }
-
-//    @Override
-//    public Void visitClassBlock(KatLanParser.ClassBlockContext ctx) {
-//        if (ctx==null) return null;
-//        var methods = ctx.methodDef();
-//        HashMap<MethodMaker, Pair<HashMap<String, Integer>, KatLanParser.BlockContext>> map = new HashMap<>();
-//
-//        HashMap<MethodLink, List<KLAnnotation>> methodLinks = new HashMap<>();
-//        // TODO: add annotations
-//        cm.addField(ClassLink.class, "klclass").public_().static_().final_();
-//
-//        MethodMaker methodDefs = cm.addClinit();
-//        Variable klClass = methodDefs.field("klclass").set(methodDefs.new_(ClassLink.class, methodDefs.class_()));
-//
-//        for (var method : methods) {
-//            HashMap<String, Integer> vars = new HashMap<>();
-//
-//            Object retType = getType(method.type().getText());
-//
-//            List<Object> pTypes = new ArrayList<>();
-//            Variable pTypesArrV = methodDefs.new_(Class[].class, 1);
-//
-//            int i = 0;
-//            if (method.parameters() != null) {
-//                for (var p : method.parameters().parameter()) {
-//                    Object type = getType(p.type().getText());
-//                    pTypes.add(type);
-//                    vars.put(p.name().getText(), i);
-//                    pTypesArrV.aset(i, methodDefs.var(type).classType());
-//                    i++;
-//                }
-//            }
-//
-//            MethodMaker mm = cm.addMethod(retType, method.name().getText(), pTypes.toArray(Object[]::new));
-//
-//            if (method.access().PUBLIC() != null)    mm.public_();
-//            if (method.access().PRIVATE() != null)   mm.private_();
-//            if (method.access().PROTECTED() != null) mm.protected_();
-//            if (method.access().STATIC() != null)    mm.static_();
-//            if (method.access().FINAL() != null)     mm.final_();
-//
-//            Variable cl = methodDefs.var(Class.class).set(methodDefs.class_());
-//            System.out.println(cl.classType() + " " + method.name().getText() + " " + pTypesArrV.classType());
-//
-//            Variable ml = methodDefs.new_(MethodLink.class, cl, method.name().getText(), pTypesArrV);
-//            Variable annotationCalls = new VariableGetter(methodDefs, this.compiler, new HashMap<>(), new HashMap<>())
-//                    .visitAnnotationCalls(method.annotationCall(), ml);
-//            List<KatLanParser.AnnotationCallContext> annotationCall = method.annotationCall();
-//            for (int j = 0; j < annotationCall.size(); j++) {
-//                ml.field("klAnnotations").invoke("add", annotationCalls.aget(j));
-//            }
-//            ml.field("klAnnotations").invoke("makeImmutable");
-//            klClass.field("methodLinks").invoke("add", ml);
-//
-//            map.put(mm, new Pair<>(vars, method.block()));
-//        }
-//
-//
-//        for (var constructor : ctx.constructorDef()) {
-//            HashMap<String, Integer> vars = new HashMap<>();
-//            List<Object> pTypes = new ArrayList<>();
-//
-//            int i = 0;
-//            if (constructor.parameters() != null) {
-//                for (var p : constructor.parameters().parameter()) {
-//                    Object type = getType(p.type().getText());
-//                    pTypes.add(type);
-//                    vars.put(p.name().getText(), i);
-//                    i++;
-//                }
-//            }
-//
-//            MethodMaker mm = cm.addConstructor(pTypes.toArray(Object[]::new));
-//
-//            if (constructor.access().PUBLIC() != null)    mm.public_();
-//            if (constructor.access().PRIVATE() != null)   mm.private_();
-//            if (constructor.access().PROTECTED() != null) mm.protected_();
-//            if (constructor.access().STATIC() != null)    mm.static_();
-//            if (constructor.access().FINAL() != null)     mm.final_();
-//
-//            mm.invokeThisConstructor();
-//            map.put(mm, new Pair<>(vars, constructor.block()));
-//        }
-//
-//
-//        for (var mm : map.entrySet()) {
-//            var methodVisitor = new KLMethodVisitor(mm.getKey(), this.compiler, mm.getValue().a); // xd renaming
-//            try {
-//                methodVisitor.localVars.put("this", mm.getKey().this_());
-//            } catch (IllegalStateException ignored) {} // this is thrown when the method is static, so no problems
-//            methodVisitor.visitLines(mm.getValue().b.lineBlock());
-//        }
-//
-//
-//        return null;
-//    }
-
 
     @Override
     public Void visitClassBlock(KatLanParser.ClassBlockContext ctx) {
@@ -308,12 +179,16 @@ public class KLMethodDefVisitor extends KatLanBaseVisitor<Void> {
     public Void visitUnnamedClassDef(KatLanParser.UnnamedClassDefContext ctx) {
         if (ctx.classBlock() != null)
             visitClassBlock(ctx.classBlock());
-        if (ctx.namespaceBlock() != null) {
-            MethodMaker mm = cm.addMethod(null, "main", String[].class).public_().static_();
-            HashMap<String, Integer> vars = new HashMap<>();
-            vars.put("args", 0);
-//            new KLMethodVisitor(mm, this.compiler, vars).visitBlock(ctx.namespaceBlock());
-            // TODO;
+        if (ctx.packageBlock()!=null && !ctx.packageBlock().isEmpty()) {
+            var nsVisitor = new KLMethodDefVisitor(cm, compiler);
+            var nsFieldsVisitor = new KLFieldsVisitor(cm, compiler);
+            nsVisitor.isNamespace = true;
+            for (var nsblock : ctx.packageBlock()) {
+                for (var md : nsblock.methodDef()) {
+                    var mdClinit = compiler.getClinitVars().get("methodLinks").methodMaker();
+                    nsVisitor.processMethod(md, mdClinit, mdClinit.field("klclass"));
+                }
+            }
         }
         return null;
     }
