@@ -88,15 +88,15 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitAnnotationDef(KatLanParser.AnnotationDefContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link KatLanParser#namespaceBlock}.
+	 * Enter a parse tree produced by {@link KatLanParser#packageBlock}.
 	 * @param ctx the parse tree
 	 */
-	void enterNamespaceBlock(KatLanParser.NamespaceBlockContext ctx);
+	void enterPackageBlock(KatLanParser.PackageBlockContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link KatLanParser#namespaceBlock}.
+	 * Exit a parse tree produced by {@link KatLanParser#packageBlock}.
 	 * @param ctx the parse tree
 	 */
-	void exitNamespaceBlock(KatLanParser.NamespaceBlockContext ctx);
+	void exitPackageBlock(KatLanParser.PackageBlockContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#classBlock}.
 	 * @param ctx the parse tree
@@ -497,6 +497,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMethodModifier(KatLanParser.MethodModifierContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#modifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterModifier(KatLanParser.ModifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#modifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitModifier(KatLanParser.ModifierContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#operator}.
 	 * @param ctx the parse tree

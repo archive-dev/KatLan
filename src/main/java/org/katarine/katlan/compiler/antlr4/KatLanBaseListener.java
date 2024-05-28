@@ -113,13 +113,13 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNamespaceBlock(KatLanParser.NamespaceBlockContext ctx) { }
+	@Override public void enterPackageBlock(KatLanParser.PackageBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNamespaceBlock(KatLanParser.NamespaceBlockContext ctx) { }
+	@Override public void exitPackageBlock(KatLanParser.PackageBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -600,6 +600,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitMethodModifier(KatLanParser.MethodModifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterModifier(KatLanParser.ModifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitModifier(KatLanParser.ModifierContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

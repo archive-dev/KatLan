@@ -59,11 +59,11 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAnnotationDef(KatLanParser.AnnotationDefContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link KatLanParser#namespaceBlock}.
+	 * Visit a parse tree produced by {@link KatLanParser#packageBlock}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitNamespaceBlock(KatLanParser.NamespaceBlockContext ctx);
+	T visitPackageBlock(KatLanParser.PackageBlockContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#classBlock}.
 	 * @param ctx the parse tree
@@ -304,6 +304,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitMethodModifier(KatLanParser.MethodModifierContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#modifier}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModifier(KatLanParser.ModifierContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#operator}.
 	 * @param ctx the parse tree
