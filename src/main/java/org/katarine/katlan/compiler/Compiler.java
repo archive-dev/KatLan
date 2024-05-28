@@ -10,8 +10,10 @@ import org.katarine.katlan.compiler.antlr4.KatLanParser;
 import org.katarine.katlan.compiler.visitors.*;
 import org.katarine.katlan.lib.ClassLink;
 import org.katarine.katlan.lib.FieldLink;
+import org.katarine.katlan.lib.KLPackage;
 import org.katarine.katlan.lib.MethodLink;
 import org.katarine.katlan.lib.annotations.KLAnnotation;
+import org.katarine.katlan.lib.annotations.Override;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -102,8 +104,7 @@ public class Compiler {
         imports.put("NumberFormatException", NumberFormatException.class);
         imports.put("Object", Object.class);
         imports.put("OutOfMemoryError", OutOfMemoryError.class);
-        imports.put("Override", Override.class);
-        imports.put("KLPackage", Package.class);
+        imports.put("KLPackage", KLPackage.class);
         imports.put("Process", Process.class);
         imports.put("ProcessBuilder", ProcessBuilder.class);
         imports.put("ProcessHandle", ProcessHandle.class);
@@ -140,17 +141,30 @@ public class Compiler {
         imports.put("Void", Void.class);
         imports.put("print", "System.out.println");
 
+        imports.put("Override", Override.class);
         try {
             ClassPath.from(this.getClass().getClassLoader())
                     .getAllClasses()
-                    .stream().filter(c -> c.getPackageName().startsWith("org.katarine.katlan.lib") || c.getPackageName().startsWith("org.katarine.compiler"))
+                    .stream().filter(c -> (
+                            c.getPackageName().startsWith("org.katarine.katlan.lib")
+                            || c.getPackageName().startsWith("org.katarine.compiler")
+                    ) &&
+                            !imports.containsKey(c.getSimpleName()))
                     .forEach(c -> imports.put(c.getSimpleName(), c));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        imports.put("Override", Override.class);
     }
 
     public final HashMap<String, FieldMaker> fields = new HashMap<>();
+    public final HashMap<String, FieldMaker> packageFields = new HashMap<>();
+    public final HashMap<String, FieldMaker> getFields(boolean isPackage) {
+        if (isPackage) return packageFields;
+        return fields;
+    }
+
     public String package_;
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -190,13 +204,6 @@ public class Compiler {
     @SuppressWarnings("unchecked")
     public final HashMap<String, Variable> getClinitVars() {
         return (HashMap<String, Variable>) clinitVars.clone();
-    }
-
-    private <T> void initKLClass(ClassMaker cm, T[] t) {
-        if (t[0] instanceof KatLanParser.ClassBlockContext)
-            initKLClass(cm, ((KatLanParser.ClassBlockContext[]) t));
-        else if (t[0] instanceof KatLanParser.NamespaceBlockContext)
-            initKLClass(cm, ((KatLanParser.NamespaceBlockContext[]) t));
     }
 
     private File getInputFile(String fileName) {
@@ -249,9 +256,10 @@ public class Compiler {
         int fieldCount = 0;
 
         for (var cb : classBlock.children) {
-            if (cb instanceof KatLanParser.NamespaceBlockContext) {
-                fieldCount += ((KatLanParser.NamespaceBlockContext) cb).var().size();
-                methodCount += ((KatLanParser.NamespaceBlockContext) cb).methodDef().size();
+            if (cb instanceof KatLanParser.PackageBlockContext) {
+                // do nothing because NO
+//                fieldCount += ((KatLanParser.PackageBlockContext) cb).var().size();
+//                methodCount += ((KatLanParser.PackageBlockContext) cb).methodDef().size();
             } else if (cb instanceof KatLanParser.ClassBlockContext) {
                 fieldCount += ((KatLanParser.ClassBlockContext) cb).var().size();
                 methodCount += ((KatLanParser.ClassBlockContext) cb).methodDef().size();
