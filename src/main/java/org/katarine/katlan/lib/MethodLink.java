@@ -5,6 +5,7 @@ import org.katarine.katlan.lib.annotations.*;
 import org.katarine.katlan.lib.annotations.Package;
 
 import java.io.Serializable;
+import java.lang.Override;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -215,11 +216,6 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
 
     public final KLPackage getDeclaringPackage() {
         return declaringPackage;
-    }
-
-    @Override
-    public final Annotation[] getAnnotations() {
-        return annotations;
     }
 
     public final Access getAccess() {
