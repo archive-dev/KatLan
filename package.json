@@ -1,0 +1,24 @@
+{
+  "name": "katlan-grammar",
+  "version": "0.1.0",
+  "description": "Syntax highlighting for KatLan",
+  "main": "KatLan.tmLanguage.json",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whoisamyy/KatLan.git"
+  },
+  "keywords": [
+    "syntax",
+    "highlighting",
+    "katlan"
+  ],
+  "author": "whoisamyy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/whoisamyy/KatLan/issues"
+  },
+  "homepage": "https://github.com/whoisamyy/KatLan#readme"
+}
