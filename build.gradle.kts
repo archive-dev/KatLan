@@ -15,7 +15,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.cojen:cojen-maker:2.5.7")
     // https://mvnrepository.com/artifact/com.google.guava/guava
     implementation("com.google.guava:guava:33.1.0-jre")
 
