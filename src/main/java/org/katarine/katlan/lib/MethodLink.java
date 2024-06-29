@@ -31,11 +31,15 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
 
     private KLAnnotation[] klAnnotations;
 
-    public MethodLink(Class<?> declaringClass, String methodName, Class<?>... parameterTypes) {
+    static MethodLink of(Methods.MethodSignature signature) {
+        return Methods.getCachedMethods().computeIfAbsent(signature, v -> new MethodLink(signature));
+    }
+
+    MethodLink(Class<?> declaringClass, String methodName, Class<?>... parameterTypes) {
         this(declaringClass, methodName, new KLAnnotation[0], parameterTypes);
     }
 
-    public MethodLink(Class<?> declaringClass, String methodName, KLAnnotation[] annotations, Class<?>... parameterTypes) {
+    MethodLink(Class<?> declaringClass, String methodName, KLAnnotation[] annotations, Class<?>... parameterTypes) {
         this.declaringClass = declaringClass;
         this.methodName = methodName;
         this.parameterTypes = parameterTypes;
@@ -130,7 +134,7 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
         }
 
         if (this.modifier!=MethodModifier.PACKAGE) {
-            this.declaringKLClass = ClassLink.of(declaringClass);
+            this.declaringKLClass = Classes.getClassLink(declaringClass);
             this.declaringPackage = null;
         } else {
             this.declaringKLClass = null;
@@ -144,6 +148,10 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
 
         if (declaringPackage !=null)
             declaringPackage.registerMethod(this);
+    }
+
+    private MethodLink(Methods.MethodSignature signature) {
+        this(signature.declarer(), signature.methodName(), signature.annotations(), signature.parameterTypes());
     }
 
     public final Object invoke(Object caller, Object... args) throws InvocationTargetException, IllegalAccessException {
