@@ -12,7 +12,7 @@ public final class Classes {
         classes.put(cl.jClass(), cl);
     }
 
-    public static ClassLink loadClassLink(Class<?> clazz) {
+    public static ClassLink getClassLink(Class<?> clazz) {
         return classes.get(clazz);
     }
 

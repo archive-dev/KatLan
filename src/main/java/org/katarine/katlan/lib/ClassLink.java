@@ -27,7 +27,7 @@ public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassNa
     private final KLPackage pkg;
 
     public static ClassLink of(Class<?> jClass) {
-        ClassLink cl = Classes.loadClassLink(jClass);
+        ClassLink cl = Classes.getClassLink(jClass);
         if (cl == null) cl = new ClassLink(jClass);
         return cl;
     }
@@ -39,7 +39,7 @@ public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassNa
         this.name = this.jClass.getSimpleName();
         this.methods = this.jClass.getDeclaredMethods();
         this.fields = this.jClass.getDeclaredFields();
-        this.superClass = of(this.jClass.getSuperclass());
+        this.superClass = Classes.getClassLink(this.jClass.getSuperclass());
 
         this.methodLinks = methodLinks;
         this.fieldLinks = fieldLinks;
