@@ -56,8 +56,8 @@ bool: TRUE | FALSE;
 
 genericTypeName: name | '?'; //todo
 genericDef: ('<' genericTypeUse (',' genericTypeUse)* '>');
-genericTypeUse: genericTypeName extendsStatement?;
-extendsStatement: EXTENDS anyType;
+genericTypeUse: genericTypeName genericExtendsStatement?;
+genericExtendsStatement: EXTENDS anyType;
 
 varAssignment: annotationCall* (varAccess '=' value) | incrExpression;
 
