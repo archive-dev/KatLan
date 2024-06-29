@@ -1,8 +1,8 @@
 package org.katarine.katlan.compiler.visitors;
 
 import org.katarine.katlan.compiler.Compiler;
-import org.katarine.katlan.compiler.antlr4.KatLanBaseVisitor;
-import org.katarine.katlan.compiler.antlr4.KatLanParser;
+import org.katarine.katlan.antlr4.KatLanBaseVisitor;
+import org.katarine.katlan.antlr4.KatLanParser;
 import org.antlr.v4.runtime.misc.Pair;
 import org.cojen.maker.ClassMaker;
 import org.cojen.maker.FieldMaker;

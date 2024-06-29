@@ -5,8 +5,8 @@ import org.cojen.maker.Label;
 import org.cojen.maker.MethodMaker;
 import org.cojen.maker.Variable;
 import org.katarine.katlan.compiler.Compiler;
-import org.katarine.katlan.compiler.antlr4.KatLanBaseVisitor;
-import org.katarine.katlan.compiler.antlr4.KatLanParser;
+import org.katarine.katlan.antlr4.KatLanBaseVisitor;
+import org.katarine.katlan.antlr4.KatLanParser;
 
 import java.util.HashMap;
 import java.util.List;

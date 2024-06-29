@@ -1,8 +1,8 @@
 package org.katarine.katlan.compiler.visitors;
 
-import org.katarine.katlan.compiler.antlr4.KatLanBaseVisitor;
+import org.katarine.katlan.antlr4.KatLanBaseVisitor;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.katarine.katlan.compiler.antlr4.KatLanParser;
+import org.katarine.katlan.antlr4.KatLanParser;
 
 public class KLClassVisitor extends KatLanBaseVisitor<ParserRuleContext> {
     @Override
