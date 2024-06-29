@@ -1,5 +1,5 @@
 // Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
-package org.katarine.katlan.compiler.antlr4;
+package org.katarine.katlan.antlr4;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -233,13 +233,13 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExtendsStatement(KatLanParser.ExtendsStatementContext ctx) { }
+	@Override public void enterGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExtendsStatement(KatLanParser.ExtendsStatementContext ctx) { }
+	@Override public void exitGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

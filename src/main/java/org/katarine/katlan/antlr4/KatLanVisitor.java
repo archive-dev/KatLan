@@ -1,5 +1,5 @@
 // Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
-package org.katarine.katlan.compiler.antlr4;
+package org.katarine.katlan.antlr4;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -119,11 +119,11 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitGenericTypeUse(KatLanParser.GenericTypeUseContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * Visit a parse tree produced by {@link KatLanParser#genericExtendsStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
+	T visitGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#varAssignment}.
 	 * @param ctx the parse tree

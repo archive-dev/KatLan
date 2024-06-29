@@ -1,5 +1,5 @@
 // Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
-package org.katarine.katlan.compiler.antlr4;
+package org.katarine.katlan.antlr4;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -36,7 +36,7 @@ public class KatLanParser extends Parser {
 		RULE_packageBlock = 8, RULE_classBlock = 9, RULE_annotationClassBlock = 10, 
 		RULE_block = 11, RULE_lineBlock = 12, RULE_value = 13, RULE_bool = 14, 
 		RULE_genericTypeName = 15, RULE_genericDef = 16, RULE_genericTypeUse = 17, 
-		RULE_extendsStatement = 18, RULE_varAssignment = 19, RULE_varAccess = 20, 
+		RULE_genericExtendsStatement = 18, RULE_varAssignment = 19, RULE_varAccess = 20, 
 		RULE_arrayAccess = 21, RULE_arrayAccess0 = 22, RULE_methodDef = 23, RULE_constructorDef = 24, 
 		RULE_operatorOverDef = 25, RULE_parameters = 26, RULE_parameter = 27, 
 		RULE_var = 28, RULE_constDef = 29, RULE_constDef0 = 30, RULE_constDef1 = 31, 
@@ -59,7 +59,7 @@ public class KatLanParser extends Parser {
 			"class", "package", "importBlock", "importStatement", "unnamedClassDef", 
 			"classDef", "interfaceDef", "annotationDef", "packageBlock", "classBlock", 
 			"annotationClassBlock", "block", "lineBlock", "value", "bool", "genericTypeName", 
-			"genericDef", "genericTypeUse", "extendsStatement", "varAssignment", 
+			"genericDef", "genericTypeUse", "genericExtendsStatement", "varAssignment", 
 			"varAccess", "arrayAccess", "arrayAccess0", "methodDef", "constructorDef", 
 			"operatorOverDef", "parameters", "parameter", "var", "constDef", "constDef0", 
 			"constDef1", "varDef", "varDef0", "varDef1", "subVD1", "statement", "returnStatement", 
@@ -2182,8 +2182,8 @@ public class KatLanParser extends Parser {
 		public GenericTypeNameContext genericTypeName() {
 			return getRuleContext(GenericTypeNameContext.class,0);
 		}
-		public ExtendsStatementContext extendsStatement() {
-			return getRuleContext(ExtendsStatementContext.class,0);
+		public GenericExtendsStatementContext genericExtendsStatement() {
+			return getRuleContext(GenericExtendsStatementContext.class,0);
 		}
 		public GenericTypeUseContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2219,7 +2219,7 @@ public class KatLanParser extends Parser {
 			if (_la==EXTENDS) {
 				{
 				setState(485);
-				extendsStatement();
+				genericExtendsStatement();
 				}
 			}
 
@@ -2237,33 +2237,33 @@ public class KatLanParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExtendsStatementContext extends ParserRuleContext {
+	public static class GenericExtendsStatementContext extends ParserRuleContext {
 		public TerminalNode EXTENDS() { return getToken(KatLanParser.EXTENDS, 0); }
 		public AnyTypeContext anyType() {
 			return getRuleContext(AnyTypeContext.class,0);
 		}
-		public ExtendsStatementContext(ParserRuleContext parent, int invokingState) {
+		public GenericExtendsStatementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_extendsStatement; }
+		@Override public int getRuleIndex() { return RULE_genericExtendsStatement; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof KatLanListener ) ((KatLanListener)listener).enterExtendsStatement(this);
+			if ( listener instanceof KatLanListener ) ((KatLanListener)listener).enterGenericExtendsStatement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof KatLanListener ) ((KatLanListener)listener).exitExtendsStatement(this);
+			if ( listener instanceof KatLanListener ) ((KatLanListener)listener).exitGenericExtendsStatement(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof KatLanVisitor ) return ((KatLanVisitor<? extends T>)visitor).visitExtendsStatement(this);
+			if ( visitor instanceof KatLanVisitor ) return ((KatLanVisitor<? extends T>)visitor).visitGenericExtendsStatement(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final ExtendsStatementContext extendsStatement() throws RecognitionException {
-		ExtendsStatementContext _localctx = new ExtendsStatementContext(_ctx, getState());
-		enterRule(_localctx, 36, RULE_extendsStatement);
+	public final GenericExtendsStatementContext genericExtendsStatement() throws RecognitionException {
+		GenericExtendsStatementContext _localctx = new GenericExtendsStatementContext(_ctx, getState());
+		enterRule(_localctx, 36, RULE_genericExtendsStatement);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{

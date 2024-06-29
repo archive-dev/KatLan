@@ -1,5 +1,5 @@
 // Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
-package org.katarine.katlan.compiler.antlr4;
+package org.katarine.katlan.antlr4;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -188,15 +188,15 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitGenericTypeUse(KatLanParser.GenericTypeUseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * Enter a parse tree produced by {@link KatLanParser#genericExtendsStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
+	void enterGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * Exit a parse tree produced by {@link KatLanParser#genericExtendsStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
+	void exitGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#varAssignment}.
 	 * @param ctx the parse tree

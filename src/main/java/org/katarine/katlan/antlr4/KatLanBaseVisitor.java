@@ -1,5 +1,5 @@
 // Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
-package org.katarine.katlan.compiler.antlr4;
+package org.katarine.katlan.antlr4;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**
@@ -144,7 +144,7 @@ public class KatLanBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExtendsStatement(KatLanParser.ExtendsStatementContext ctx) { return visitChildren(ctx); }
+	@Override public T visitGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
