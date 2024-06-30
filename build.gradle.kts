@@ -15,10 +15,10 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/com.google.guava/guava
+    implementation("org.ow2.asm:asm:9.7")
+
     implementation("com.google.guava:guava:33.1.0-jre")
 
-//    implementation("org.jetbrains:annotations:24.0.0")
     antlr("org.antlr:antlr4:4.13.1")
 
     testImplementation(platform("org.junit:junit-bom:5.10.1"))
@@ -34,7 +34,7 @@ tasks.shadowJar {
     archiveFileName = "${rootProject.name}-$version.jar"
     archiveBaseName = ""
     manifest {
-        attributes.put("Main-Class", "org.katarine.katlan.compiler.Compiler")
+        attributes["Main-Class"] = "org.katarine.katlan.compiler.Compiler"
     }
 }
 
