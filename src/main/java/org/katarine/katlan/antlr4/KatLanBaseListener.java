@@ -233,13 +233,13 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExtendsStatement(KatLanParser.ExtendsStatementContext ctx) { }
+	@Override public void enterGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExtendsStatement(KatLanParser.ExtendsStatementContext ctx) { }
+	@Override public void exitGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

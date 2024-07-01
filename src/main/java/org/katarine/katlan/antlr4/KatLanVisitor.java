@@ -119,11 +119,11 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitGenericTypeUse(KatLanParser.GenericTypeUseContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * Visit a parse tree produced by {@link KatLanParser#genericExtendsStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
+	T visitGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#varAssignment}.
 	 * @param ctx the parse tree

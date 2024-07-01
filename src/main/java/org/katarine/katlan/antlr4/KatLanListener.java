@@ -188,15 +188,15 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitGenericTypeUse(KatLanParser.GenericTypeUseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * Enter a parse tree produced by {@link KatLanParser#genericExtendsStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
+	void enterGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link KatLanParser#extendsStatement}.
+	 * Exit a parse tree produced by {@link KatLanParser#genericExtendsStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitExtendsStatement(KatLanParser.ExtendsStatementContext ctx);
+	void exitGenericExtendsStatement(KatLanParser.GenericExtendsStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#varAssignment}.
 	 * @param ctx the parse tree
