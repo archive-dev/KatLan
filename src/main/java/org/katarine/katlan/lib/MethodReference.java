@@ -13,12 +13,12 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MethodLink extends Handleable implements Serializable, Accessible, KLAnnotatedElement { // @methodName(pType1, pType2...)
+public class MethodReference extends Handleable implements Serializable, Accessible, KLAnnotatedElement { // @methodName(pType1, pType2...)
     private final String methodName;
     private final Class<?>[] parameterTypes;
     private final Class<?> returnType;
     private final Class<?> declaringClass;
-    private final ClassLink declaringKLClass;
+    private final ClassReference declaringKLClass;
     private final KLPackage declaringPackage;
 
     private final Annotation[] annotations;
@@ -31,15 +31,15 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
 
     private KLAnnotation[] klAnnotations;
 
-    static MethodLink of(Methods.MethodSignature signature) {
-        return Methods.getCachedMethods().computeIfAbsent(signature, v -> new MethodLink(signature));
+    static MethodReference of(Methods.MethodSignature signature) {
+        return Methods.getCachedMethods().computeIfAbsent(signature, v -> new MethodReference(signature));
     }
 
-    MethodLink(Class<?> declaringClass, String methodName, Class<?>... parameterTypes) {
+    MethodReference(Class<?> declaringClass, String methodName, Class<?>... parameterTypes) {
         this(declaringClass, methodName, new KLAnnotation[0], parameterTypes);
     }
 
-    MethodLink(Class<?> declaringClass, String methodName, KLAnnotation[] annotations, Class<?>... parameterTypes) {
+    MethodReference(Class<?> declaringClass, String methodName, KLAnnotation[] annotations, Class<?>... parameterTypes) {
         this.declaringClass = declaringClass;
         this.methodName = methodName;
         this.parameterTypes = parameterTypes;
@@ -82,7 +82,7 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
         }
 
         if (this.modifier!=MethodModifier.PACKAGE) {
-            this.declaringKLClass = ClassLink.of(declaringClass);
+            this.declaringKLClass = ClassReference.of(declaringClass);
             this.declaringPackage = null;
         } else {
             this.declaringKLClass = null;
@@ -103,7 +103,7 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
         }
     }
 
-    public MethodLink(Method method) {
+    public MethodReference(Method method) {
         this.declaringClass = method.getDeclaringClass();
         this.methodName = method.getName();
         this.parameterTypes = method.getParameterTypes();
@@ -134,7 +134,7 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
         }
 
         if (this.modifier!=MethodModifier.PACKAGE) {
-            this.declaringKLClass = Classes.getClassLink(declaringClass);
+            this.declaringKLClass = Classes.getClassReference(declaringClass);
             this.declaringPackage = null;
         } else {
             this.declaringKLClass = null;
@@ -150,7 +150,7 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
             declaringPackage.registerMethod(this);
     }
 
-    private MethodLink(Methods.MethodSignature signature) {
+    private MethodReference(Methods.MethodSignature signature) {
         this(signature.declarer(), signature.methodName(), signature.annotations(), signature.parameterTypes());
     }
 
@@ -218,7 +218,7 @@ public class MethodLink extends Handleable implements Serializable, Accessible, 
         return declaringClass;
     }
 
-    public final ClassLink getDeclaringKLClass() {
+    public final ClassReference getDeclaringKLClass() {
         return declaringKLClass;
     }
 

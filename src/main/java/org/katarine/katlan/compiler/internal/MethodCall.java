@@ -1,7 +1,7 @@
 package org.katarine.katlan.compiler.internal;
 
 import org.katarine.katlan.compiler.annotations.KLAnnotationWrapper;
-import org.katarine.katlan.lib.MethodLink;
+import org.katarine.katlan.lib.MethodReference;
 import org.katarine.katlan.lib.annotations.*;
 
 import java.lang.Override;
@@ -13,12 +13,12 @@ public final class MethodCall implements KLAnnotatedElement {
     public final Object caller;
     public final Object[] args;
 
-    public final MethodLink ml;
+    public final MethodReference ml;
     private final KLAnnotation[] annotations;
 
     private final Hashtable<KLAnnotationWrapper<?>, KLAnnotation> wrappers;
 
-    public MethodCall(MethodLink ml, Object caller, Object[] args, KLAnnotation... annotations) {
+    public MethodCall(MethodReference ml, Object caller, Object[] args, KLAnnotation... annotations) {
         this.ml = ml;
         this.caller = caller;
         this.args = args;
@@ -29,7 +29,7 @@ public final class MethodCall implements KLAnnotatedElement {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "UnusedReturnValue"})
     public <T> T call() {
         for (var wrapper : wrappers.entrySet()) {
             wrapper.getKey().handle(wrapper.getValue(), CallType.PRE_METHOD_CALL);

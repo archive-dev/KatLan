@@ -1,7 +1,6 @@
 package org.katarine.katlan.lib;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 public final class Packages {
     private Packages() {}

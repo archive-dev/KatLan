@@ -11,7 +11,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassName
+public class ClassReference implements Serializable, KLAnnotatedElement { // @ClassName
     private final Class<?> jClass;
     private final ClassType classType;
     private final boolean isFinal;
@@ -19,30 +19,30 @@ public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassNa
     private final String name;
     private final Method[] methods;
     private final Field[] fields;
-    private MethodLink[] methodLinks;
-    private FieldLink[] fieldLinks;
-    private OperatorOverrideMethodLink[] operatorOverrides;
-    private KLAnnotation[] klAnnotations;
-    private final ClassLink superClass;
+    private final MethodReference[] methodReferences;
+    private final FieldReference[] fieldReferences;
+    private OperatorOverrideMethodReference[] operatorOverrides;
+    private final KLAnnotation[] klAnnotations;
+    private final ClassReference superClass;
     private final KLPackage pkg;
 
-    public static ClassLink of(Class<?> jClass) {
-        ClassLink cl = Classes.getClassLink(jClass);
-        if (cl == null) cl = new ClassLink(jClass);
+    public static ClassReference of(Class<?> jClass) {
+        ClassReference cl = Classes.getClassReference(jClass);
+        if (cl == null) cl = new ClassReference(jClass);
         return cl;
     }
 
-    public ClassLink(Class<?> jClass, MethodLink[] methodLinks, FieldLink[] fieldLinks, KLAnnotation[] klAnnotations) {
+    public ClassReference(Class<?> jClass, MethodReference[] methodReferences, FieldReference[] fieldReferences, KLAnnotation[] klAnnotations) {
         Classes.registerClass(this);
         this.jClass = jClass;
         this.isAnnotation = KLAnnotation.class.isAssignableFrom(this.jClass);
         this.name = this.jClass.getSimpleName();
         this.methods = this.jClass.getDeclaredMethods();
         this.fields = this.jClass.getDeclaredFields();
-        this.superClass = Classes.getClassLink(this.jClass.getSuperclass());
+        this.superClass = Classes.getClassReference(this.jClass.getSuperclass());
 
-        this.methodLinks = methodLinks;
-        this.fieldLinks = fieldLinks;
+        this.methodReferences = methodReferences;
+        this.fieldReferences = fieldReferences;
 
         this.klAnnotations = klAnnotations;
         if (Modifier.isAbstract(this.jClass.getModifiers())) this.classType = ClassType.ABSTRACT;
@@ -53,16 +53,16 @@ public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassNa
         this.pkg = Packages.getPackage(this.jClass.getPackageName());
     }
 
-    public ClassLink(Class<?> jClass, KLAnnotation[] klAnnotations) {
+    public ClassReference(Class<?> jClass, KLAnnotation[] klAnnotations) {
         this(
                 jClass,
-                Arrays.stream(jClass.getDeclaredMethods()).map(MethodLink::new).toArray(MethodLink[]::new),
-                Arrays.stream(jClass.getDeclaredFields()).map(FieldLink::new).toArray(FieldLink[]::new),
+                Arrays.stream(jClass.getDeclaredMethods()).map(MethodReference::new).toArray(MethodReference[]::new),
+                Arrays.stream(jClass.getDeclaredFields()).map(FieldReference::new).toArray(FieldReference[]::new),
                 klAnnotations
         );
     }
 
-    public ClassLink(Class<?> jClass) {
+    public ClassReference(Class<?> jClass) {
         this(jClass, new KLAnnotation[0]);
     }
 
@@ -73,15 +73,15 @@ public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassNa
         return m;
     }
 
-    public final MethodLink getMethodLink(String name, Class<?> returnType, Class<?>... argTypes) throws NoSuchMethodException {
-        MethodLink ml = getMethodLink(name, argTypes);
+    public final MethodReference getMethodReference(String name, Class<?> returnType, Class<?>... argTypes) throws NoSuchMethodException {
+        MethodReference ml = getMethodReference(name, argTypes);
         if (!ml.getReturnType().equals(returnType))
             throw new NoSuchMethodException("No such method: " + name + " " + Arrays.toString(argTypes));
         return ml;
     }
 
-    public final MethodLink getMethodLink(String name, Class<?>... argTypes) {
-        for (var m : methodLinks) {
+    public final MethodReference getMethodReference(String name, Class<?>... argTypes) {
+        for (var m : methodReferences) {
             if (Objects.equals(name, m.getName()) && Arrays.equals(m.getParameterTypes(), argTypes))
                 return m;
         }
@@ -142,15 +142,15 @@ public class ClassLink implements Serializable, KLAnnotatedElement { // @ClassNa
         return fields;
     }
 
-    public final MethodLink[] getMethodLinks() {
-        return methodLinks;
+    public final MethodReference[] getMethodReferences() {
+        return methodReferences;
     }
 
-    public final OperatorOverrideMethodLink[] getOperatorOverrides() {
+    public final OperatorOverrideMethodReference[] getOperatorOverrides() {
         return operatorOverrides;
     }
 
-    public final ClassLink getSuperClass() {
+    public final ClassReference getSuperClass() {
         return superClass;
     }
 

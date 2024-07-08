@@ -18,19 +18,19 @@ public final class Methods {
             return new MethodSignature(method.getDeclaringClass(), method.getName(), method.getParameterTypes());
         }
 
-        public static MethodSignature of(MethodLink methodLink) {
-            return new MethodSignature(methodLink.getDeclaringClass(),
-                    methodLink.getName(),
-                    methodLink.getParameterTypes(),
-                    methodLink.getKlAnnotations());
+        public static MethodSignature of(MethodReference methodReference) {
+            return new MethodSignature(methodReference.getDeclaringClass(),
+                    methodReference.getName(),
+                    methodReference.getParameterTypes(),
+                    methodReference.getKlAnnotations());
         }
     }
 
     private static final HashSet<MethodSignature> cachedSignatures = new HashSet<>();
 
-    private static final HashMap<MethodSignature, MethodLink> cachedMethods = new HashMap<>();
+    private static final HashMap<MethodSignature, MethodReference> cachedMethods = new HashMap<>();
 
-    public static MethodLink getMethod(Class<?> declarer,
+    public static MethodReference getMethod(Class<?> declarer,
                                        String methodName,
                                        Class<?>[] parameterTypes,
                                        KLAnnotation... annotations) {
@@ -69,12 +69,12 @@ public final class Methods {
         return null;
     }
 
-    private static MethodLink getMethod(MethodSignature methodSignature) {
-        return cachedMethods.computeIfAbsent(methodSignature, k -> MethodLink.of(methodSignature));
+    private static MethodReference getMethod(MethodSignature methodSignature) {
+        return cachedMethods.computeIfAbsent(methodSignature, k -> MethodReference.of(methodSignature));
     }
 
     @SuppressWarnings("unchecked")
-    static HashMap<MethodSignature, MethodLink> getCachedMethods() {
-        return (HashMap<MethodSignature, MethodLink>) cachedMethods.clone();
+    static HashMap<MethodSignature, MethodReference> getCachedMethods() {
+        return (HashMap<MethodSignature, MethodReference>) cachedMethods.clone();
     }
 }
