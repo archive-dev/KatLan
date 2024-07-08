@@ -6,10 +6,10 @@ KatLan ([Katarine](https://github.com/whoisamyy/katarine) Language) is a JVM-com
 ## Building
 
 To build the compiler, you need to have: 
-1. Java 17 or higher (recommended, didn't test on previous versions)
-2. Gradle compatible with your java version (for java 21, the version is 8.6+)
+1. Java 22 with preview features enabled or higher
+2. Gradle 8.8+
 
-Command to build is: `gradlew build`
+Command to build is: `gradlew shadowJar`
 
 ## Compiling code
 

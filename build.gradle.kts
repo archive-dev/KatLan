@@ -26,8 +26,16 @@ dependencies {
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_17
-    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_22
+    sourceCompatibility = JavaVersion.VERSION_22
+}
+
+tasks.compileJava {
+    options.compilerArgs.add("--enable-preview")
+}
+
+tasks.compileTestJava {
+    options.compilerArgs.add("--enable-preview")
 }
 
 tasks.shadowJar {
