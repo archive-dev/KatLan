@@ -6,5 +6,5 @@ public final class MethodModifier extends Modifier {
     public static final MethodModifier OPERATOR = new MethodModifier();
     public static final MethodModifier PACKAGE = new MethodModifier();
 
-    protected MethodModifier() {}
+    private MethodModifier() {}
 }

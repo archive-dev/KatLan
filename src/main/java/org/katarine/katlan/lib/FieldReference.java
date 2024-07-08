@@ -9,28 +9,29 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-public class FieldLink extends FieldHandleable implements Serializable, Accessible, KLAnnotatedElement { // @fieldName
+public class FieldReference extends FieldHandleable implements Serializable, Accessible, KLAnnotatedElement { // @fieldName
     private final String fieldName;
     private final Class<?> type;
-    private final ClassLink classLinkType;
+    private final ClassReference classReferenceType;
     private final Access access;
     private final Ownership ownership;
     private final org.katarine.katlan.lib.Modifier modifier;
     private final Annotation[] annotations;
     private KLAnnotation[] klAnnotations;
-    private final ClassLink declaringClassLink;
+    private final ClassReference declaringClassReference;
     private final Class<?> declaringClass;
     private final KLPackage pkg;
 
     private final Field field;
 
     /**
-     * Base constructor for creating a FieldLink. May be used in any case, but recommended to use in KatLan context.
+     * Base constructor for creating a FieldReference.
+     * May be used in any case, but recommended to use in KatLan context.
      * @param declaringClass Class which declares this field.
      * @param fieldName Name of field to be referenced.
      * @param klAnnotations KatLan annotations of this field. They are automatically set by compiler.
      */
-    public FieldLink(Class<?> declaringClass, String fieldName, KLAnnotation... klAnnotations) {
+    public FieldReference(Class<?> declaringClass, String fieldName, KLAnnotation... klAnnotations) {
         this.fieldName = fieldName;
         this.declaringClass = declaringClass;
         try {
@@ -40,8 +41,8 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
         }
         this.type = field.getType();
 
-        this.declaringClassLink = ClassLink.of(this.declaringClass);
-        this.classLinkType = ClassLink.of(this.type);
+        this.declaringClassReference = ClassReference.of(this.declaringClass);
+        this.classReferenceType = ClassReference.of(this.type);
         this.pkg = KLPackage.of(this.declaringClass.getPackage());
         this.annotations = field.getAnnotations();
 
@@ -67,7 +68,7 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
         this.klAnnotations = klAnnotations;
     }
 
-    public FieldLink(Field field) {
+    public FieldReference(Field field) {
         this(field.getDeclaringClass(), field.getName());
     }
 
@@ -122,7 +123,7 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
      * Why would you use this method?
      * <table>
      *     For example, in C# you can create custom getters and setters, however this feature is not supported in java.
-     *     To achieve that you can use {@code ...WithHandlers} versions of {@link FieldLink#get(Object)} and {@link FieldLink#set(Object, Object)} methods.
+     *     To achieve that you can use {@code ...WithHandlers} versions of {@link FieldReference#get(Object)} and {@link FieldReference#set(Object, Object)} methods.
      * </table>
      * @param instance Object that owns this field or null if field is static.
      * @return Field value before postHandlers process it.
@@ -156,7 +157,7 @@ public class FieldLink extends FieldHandleable implements Serializable, Accessib
      * Why would you use this method?
      * <table>
      *     For example, in C# you can create custom getters and setters, however this feature is not supported in java.
-     *     To achieve that you can use {@code ...WithHandlers} versions of {@link FieldLink#get(Object)} and {@link FieldLink#set(Object, Object)} methods.
+     *     To achieve that you can use {@code ...WithHandlers} versions of {@link FieldReference#get(Object)} and {@link FieldReference#set(Object, Object)} methods.
      * </table>
      * @param instance Object that owns this field or null if field is static.
      * @param value Value to set.
