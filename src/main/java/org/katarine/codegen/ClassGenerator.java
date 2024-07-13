@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class ClassGenerator {
     private final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
-    static class ClassScope extends CodeScope {
+    public static class ClassScope extends CodeScope {
         private final ClassGenerator clazz;
 
         public ClassScope(ClassGenerator clazz) {
