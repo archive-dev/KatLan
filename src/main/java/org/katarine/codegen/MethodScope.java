@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 public class MethodScope extends CodeScope {
     public static class ArgVariable extends Variable {
-        public ArgVariable(Type type, String name, CodeScope ownerScope) {
-            super(type, name, ownerScope);
+        public ArgVariable(Type type, String name, CodeScope ownerScope, Method method) {
+            super(type, name, ownerScope, method);
         }
     }
 
@@ -17,7 +17,7 @@ public class MethodScope extends CodeScope {
         this.method = method;
         var params = this.method.getParameters();
         for (var v : params.entrySet()) {
-            this.variables.put(v.getKey(), new ArgVariable(v.getValue(), v.getKey(), this));
+            this.variables.put(v.getKey(), new ArgVariable(v.getValue(), v.getKey(), this, this.method));
         }
     }
 
