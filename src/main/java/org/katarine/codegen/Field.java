@@ -9,7 +9,7 @@ public class Field extends Variable implements Member {
     private int modifiers = Opcodes.ACC_PRIVATE;
 
     public Field(Type type, String name, ClassGenerator.ClassScope ownerScope) {
-        super(type, name, ownerScope);
+        super(type, name, ownerScope, null);
     }
 
     private final Supplier<FieldVisitor> fvSupplier = () -> getOwner().getClassWriter().visitField(
