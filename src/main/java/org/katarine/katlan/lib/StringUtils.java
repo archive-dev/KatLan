@@ -3,6 +3,12 @@ package org.katarine.katlan.lib;
 public final class StringUtils {
     private StringUtils() {}
 
+    /**
+     * Returns count of seq in given str
+     * @param str string to search in
+     * @param seq sequence to search for
+     * @return number of times a seq appeared in str.
+     */
     public static int count(String str, String seq) {
         int counter = 0;
         if (seq.length()>1) {

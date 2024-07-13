@@ -1,6 +1,6 @@
 package org.katarine.katlan.compiler.annotations;
 
-import org.katarine.katlan.lib.MethodLink;
+import org.katarine.katlan.lib.MethodReference;
 import org.katarine.katlan.lib.annotations.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -9,7 +9,7 @@ import java.util.Hashtable;
 public class KLAnnotationWrapper<T extends KLAnnotation> {
     public final Class<T> annotationClass;
     public final T annotation;
-    public final Hashtable<CallType, MethodLink> methods = new Hashtable<>();
+    public final Hashtable<CallType, MethodReference> methods = new Hashtable<>();
 
     @SuppressWarnings("unchecked")
     public KLAnnotationWrapper(T annotationInstance) {
@@ -25,34 +25,34 @@ public class KLAnnotationWrapper<T extends KLAnnotation> {
 
         for (var m : annotationClass.getMethods()) {
             if (m.isAnnotationPresent(OnClassInit.class))
-                methods.put(CallType.ON_CLASS_INIT, new MethodLink(m));
+                methods.put(CallType.ON_CLASS_INIT, new MethodReference(m));
 
             if (m.isAnnotationPresent(OnFieldGet.class))
-                methods.put(CallType.ON_FIELD_GET, new MethodLink(m));
+                methods.put(CallType.ON_FIELD_GET, new MethodReference(m));
 
             if (m.isAnnotationPresent(BeforeFieldGet.class))
-                methods.put(CallType.PRE_FIELD_GET, new MethodLink(m));
+                methods.put(CallType.PRE_FIELD_GET, new MethodReference(m));
 
             if (m.isAnnotationPresent(AfterFieldGet.class))
-                methods.put(CallType.POST_FIELD_GET, new MethodLink(m));
+                methods.put(CallType.POST_FIELD_GET, new MethodReference(m));
 
             if (m.isAnnotationPresent(OnFieldSet.class))
-                methods.put(CallType.ON_FIELD_SET, new MethodLink(m));
+                methods.put(CallType.ON_FIELD_SET, new MethodReference(m));
 
             if (m.isAnnotationPresent(BeforeFieldSet.class))
-                methods.put(CallType.PRE_FIELD_SET, new MethodLink(m));
+                methods.put(CallType.PRE_FIELD_SET, new MethodReference(m));
 
             if (m.isAnnotationPresent(AfterFieldSet.class))
-                methods.put(CallType.POST_FIELD_SET, new MethodLink(m));
+                methods.put(CallType.POST_FIELD_SET, new MethodReference(m));
 
             if (m.isAnnotationPresent(BeforeMethodCall.class))
-                methods.put(CallType.PRE_METHOD_CALL, new MethodLink(m));
+                methods.put(CallType.PRE_METHOD_CALL, new MethodReference(m));
 
             if (m.isAnnotationPresent(AfterMethodCall.class))
-                methods.put(CallType.POST_METHOD_CALL, new MethodLink(m));
+                methods.put(CallType.POST_METHOD_CALL, new MethodReference(m));
 
             if (m.isAnnotationPresent(OnMethodInit.class))
-                methods.put(CallType.ON_METHOD_INIT, new MethodLink(m));
+                methods.put(CallType.ON_METHOD_INIT, new MethodReference(m));
         }
     }
 

@@ -19,7 +19,7 @@ public abstract class KLAnnotation implements Serializable {
 //    public static Class<? extends Annotation> getJavaAnnotationFromKLAnnotation(Class<? extends KLAnnotation> klAnnotation) {
 //        ClassMaker cm = ClassMaker.beginExplicit(klAnnotation.getSimpleName()+"J", klAnnotation.getClassLoader(), null);
 //        cm.annotation();
-////        ClassLink klClass = klAnnotation.getDeclaredField("klclass").get(null);
+////        ClassReference klClass = klAnnotation.getDeclaredField("klclass").get(null);
 ////        klClass.get
 //
 //        for (var f : klAnnotation.getDeclaredFields()) {

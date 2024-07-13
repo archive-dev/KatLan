@@ -6,9 +6,9 @@ import java.util.HashSet;
 public class KLPackage implements Serializable {
     public final Package pkg;
 
-    private final HashSet<ClassLink> classes = new HashSet<>();
-    private final HashSet<MethodLink> methods = new HashSet<>();
-    private final HashSet<FieldLink> fields = new HashSet<>();
+    private final HashSet<ClassReference> classes = new HashSet<>();
+    private final HashSet<MethodReference> methods = new HashSet<>();
+    private final HashSet<FieldReference> fields = new HashSet<>();
 
     public static KLPackage of(Package pkg) {
         KLPackage p;
@@ -35,7 +35,7 @@ public class KLPackage implements Serializable {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(ClassLink::new)
+                    .map(ClassReference::new)
                     .toList());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -47,29 +47,29 @@ public class KLPackage implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    public HashSet<ClassLink> getClasses() {
-        return (HashSet<ClassLink>) classes.clone();
+    public HashSet<ClassReference> getClasses() {
+        return (HashSet<ClassReference>) classes.clone();
     }
 
     @SuppressWarnings("unchecked")
-    public HashSet<MethodLink> getMethods() {
-        return (HashSet<MethodLink>) methods.clone();
+    public HashSet<MethodReference> getMethods() {
+        return (HashSet<MethodReference>) methods.clone();
     }
 
     @SuppressWarnings("unchecked")
-    public HashSet<FieldLink> getFields() {
-        return (HashSet<FieldLink>) fields.clone();
+    public HashSet<FieldReference> getFields() {
+        return (HashSet<FieldReference>) fields.clone();
     }
 
-    void registerClass(ClassLink clazz) {
+    void registerClass(ClassReference clazz) {
         this.classes.add(clazz);
     }
 
-    void registerMethod(MethodLink method) {
+    void registerMethod(MethodReference method) {
         this.methods.add(method);
     }
 
-    void registerField(FieldLink field) {
+    void registerField(FieldReference field) {
         this.fields.add(field);
     }
 }
