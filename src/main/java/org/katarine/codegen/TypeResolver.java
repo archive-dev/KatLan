@@ -26,16 +26,24 @@ public final class TypeResolver {
         return Type.getDescriptor(clazz);
     }
 
+    public static boolean isPrimitive(String descriptor) {
+        return primitiveDescriptors.containsKey(descriptor) || primitiveDescriptors.containsValue(descriptor);
+    }
+
+    public static boolean isArray(String descriptor) {
+        return StringUtils.count(descriptor, "[") > 0;
+    }
+
     /**
      *
-     * @param type Fully qualified type name (i.e. org.example.Example[])
+     * @param type Fully qualified type name (i.e., org.example.Example[])
      * @return Type descriptor string
      */
     public static String getTypeDescriptor(String type) {
         int arrayDimensions = StringUtils.count(type, "]");
         type = replaceChars(type);
 
-        if (primitiveDescriptors.get(type) != null) {
+        if (isPrimitive(type)) {
             type = primitiveDescriptors.get(type);
         } else {
             type = "L" + type + ";";
@@ -54,7 +62,7 @@ public final class TypeResolver {
         int arrayDimensions = StringUtils.count(type, "]");
         type = replaceChars(type);
 
-        if (primitiveDescriptors.get(type) != null) {
+        if (isPrimitive(type)) {
             type = primitiveDescriptors.get(type);
         } else if (arrayDimensions > 0) {
             type = "L" + type;
