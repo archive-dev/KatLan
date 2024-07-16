@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class Method implements Member {
+@SuppressWarnings("unchecked")
+public class Method implements Member, Accessible {
     private final ClassGenerator owner;
 
     private final String name;
@@ -32,11 +33,11 @@ public class Method implements Member {
     }
 
 
-    public Method(ClassGenerator owner, String name, String signature, Type returnType, Pair<String, Type>... parameters) {
+    public Method(ClassGenerator owner, String name, String signature, Type returnType, Pair<String, Type>[] parameters) {
         this(owner, name, new Signature(signature), returnType, parameters);
     }
 
-    public Method(ClassGenerator owner, String name, Signature signature, Type returnType, Pair<String, Type>... parameters) {
+    public Method(ClassGenerator owner, String name, Signature signature, Type returnType, Pair<String, Type>[] parameters) {
         this.owner = owner;
         this.name = name;
         this.parameterNames.addAll(Arrays.stream(parameters).map(Pair::getA).toList());
@@ -62,14 +63,8 @@ public class Method implements Member {
         this.opQueue.add(insnCode);
     }
 
-    public Method addModifier(int mod) {
-        this.modifiers |= mod;
-        return this;
-    }
-
     public Variable var(Type type, String name) {
-        Variable var = new Variable(type, name, mainScope, this);
-        return var;
+        return mainScope.createVariable(type, name);
     }
 
     public String getDescriptor() {
@@ -117,5 +112,83 @@ public class Method implements Member {
 
         opQueue.addLast((visitor) -> visitor.visitMaxs(0, 0));
         opQueue.forEach((op) -> op.accept(mv));
+    }
+
+    @Override
+    public boolean isStatic() {
+        return isStatic;
+    }
+
+    @Override
+    public boolean isFinal() {
+        return isFinal;
+    }
+
+    @Override
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    @Override
+    public boolean isPrivate() {
+        return isPrivate;
+    }
+
+    @Override
+    public boolean isProtected() {
+        return isProtected;
+    }
+
+    @Override
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    private boolean isStatic = false;
+    @Override
+    public <T extends Accessible> T static_() {
+        this.modifiers |= Opcodes.ACC_STATIC;
+        isStatic = true;
+        return (T) this;
+    }
+
+    private boolean isFinal = false;
+    @Override
+    public <T extends Accessible> T final_() {
+        this.modifiers |= Opcodes.ACC_FINAL;
+        isFinal = true;
+        return (T) this;
+    }
+
+    private boolean isPublic = false;
+    @Override
+    public <T extends Accessible> T public_() {
+        this.modifiers |= Opcodes.ACC_PUBLIC;
+        isPublic = true;
+        return (T) this;
+    }
+
+    private boolean isPrivate = false;
+    @Override
+    public <T extends Accessible> T private_() {
+        this.modifiers |= Opcodes.ACC_PRIVATE;
+        isPrivate = true;
+        return (T) this;
+    }
+
+    private boolean isProtected = false;
+    @Override
+    public <T extends Accessible> T protected_() {
+        this.modifiers |= Opcodes.ACC_PROTECTED;
+        isProtected = true;
+        return (T) this;
+    }
+
+    private boolean isAbstract = false;
+    @Override
+    public <T extends Accessible> T abstract_() {
+        this.modifiers |= Opcodes.ACC_ABSTRACT;
+        isAbstract = true;
+        return (T) this;
     }
 }

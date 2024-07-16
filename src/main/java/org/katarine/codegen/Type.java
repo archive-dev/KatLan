@@ -84,13 +84,48 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
 
     public int getStoreCode() {
         if (!TypeResolver.isPrimitive(this.getDescriptor())) {
-            return Opcodes.ASTORE;
+            if (!TypeResolver.isArray(this.getDescriptor()))
+                return Opcodes.ASTORE;
+            return switch (this.getDescriptor().replaceAll("\\[", "")) {
+                case "Z", "I" -> Opcodes.IASTORE;
+                case "F" -> Opcodes.FASTORE;
+                case "D" -> Opcodes.DASTORE;
+                case "J" -> Opcodes.LASTORE;
+                case "C" -> Opcodes.CASTORE;
+                case "S" -> Opcodes.SASTORE;
+                case "B" -> Opcodes.BASTORE;
+                default -> Opcodes.AASTORE;
+            };
         }
         return switch (this.getDescriptor()) {
             case "Z", "B", "C", "S", "I" -> Opcodes.ISTORE;
             case "F" -> Opcodes.FSTORE;
             case "D" -> Opcodes.DSTORE;
             case "J" -> Opcodes.LSTORE;
+            default -> throw new IllegalStateException("Unexpected value: " + this.getDescriptor());
+        };
+    }
+    
+    public int getLoadCode() {
+        if (!TypeResolver.isPrimitive(this.getDescriptor())) {
+            if (!TypeResolver.isArray(this.getDescriptor()))
+                return Opcodes.ALOAD;
+            return switch (this.getDescriptor().replaceAll("\\[", "")) {
+                case "Z", "I" -> Opcodes.IASTORE;
+                case "F" -> Opcodes.FASTORE;
+                case "D" -> Opcodes.DASTORE;
+                case "J" -> Opcodes.LASTORE;
+                case "C" -> Opcodes.CASTORE;
+                case "S" -> Opcodes.SASTORE;
+                case "B" -> Opcodes.BASTORE;
+                default -> Opcodes.AALOAD;
+            };
+        }
+        return switch (this.getDescriptor()) {
+            case "Z", "B", "C", "S", "I" -> Opcodes.ILOAD;
+            case "F" -> Opcodes.FLOAD;
+            case "D" -> Opcodes.DLOAD;
+            case "J" -> Opcodes.LLOAD;
             default -> throw new IllegalStateException("Unexpected value: " + this.getDescriptor());
         };
     }

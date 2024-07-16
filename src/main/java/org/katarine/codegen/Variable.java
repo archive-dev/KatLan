@@ -11,16 +11,20 @@ public class Variable { // todo: all ways to call method or do smth else should 
     private final CodeScope ownerScope;
     private final Method method;
 
-    public Variable(Type type, String name, CodeScope ownerScope, Method method) {
+    private final int index;
+
+    public Variable(Type type, String name, CodeScope ownerScope, Method method, int index) {
         this.type = type;
         this.name = name;
         this.ownerScope = ownerScope;
         this.method = method;
+        this.index = index;
     }
 
     public Variable set(Object value) {
         Consumer<MethodVisitor> setter = (mv) -> {
-//            mv.visitVarInsn();
+            mv.visitLdcInsn(value);
+            mv.visitVarInsn(this.type.getLoadCode(), index);
         };
         method.addInsn(setter);
         return this;
