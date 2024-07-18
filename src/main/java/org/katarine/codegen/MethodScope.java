@@ -1,22 +1,24 @@
 package org.katarine.codegen;
 
+import org.objectweb.asm.Opcodes;
+
 import java.util.HashMap;
 
 public class MethodScope extends CodeScope {
-    public static class ArgVariable extends Variable {
-        public ArgVariable(Type type, String name, CodeScope ownerScope, Method method, int index) {
-            super(type, name, ownerScope, method, index);
-        }
-    }
-
     private final Method method;
-    private final HashMap<Object, Variable> variables = new HashMap<>();
     private int varCounter = 0;
 
     public MethodScope(Method method, CodeScope parentScope) {
         super(parentScope);
         this.method = method;
         var params = this.method.getParameters();
+        initializeParams(params);
+    }
+
+    private void initializeParams(HashMap<String, Type> params) {
+        if (!method.isStatic()) {
+            createVariable(method.getOwner().getType(), "this");
+        }
         for (var v : params.entrySet()) {
             createVariable(v.getValue(), v.getKey());
         }
