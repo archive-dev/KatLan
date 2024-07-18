@@ -6,9 +6,21 @@ import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
 
+@SuppressWarnings("unchecked")
 public class ClassGenerator implements Accessible {
+    private final String name;
+    private final Type type;
+    private final Type superType;
+    private final ArrayList<Type> interfaces = new ArrayList<>();
+
     private final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
     private int modifiers = 0;
+
+    public ClassGenerator(String name, Type superType) {
+        this.name = name;
+        this.type = new Type.SimpleType(name);
+        this.superType = superType;
+    }
 
     public static class ClassScope extends CodeScope {
         private final ClassGenerator clazz;
@@ -61,8 +73,20 @@ public class ClassGenerator implements Accessible {
         return f;
     }
 
+    private boolean isFinished = false;
     public final void finish() {
+        if (isFinished) throw new IllegalStateException();
+        cw.visit(Opcodes.V17,
+                modifiers,
+                TypeResolver.getInternalTypeName(name),
+                type.getSignature().getSignature(),
+                superType.getInternalName(),
+                interfaces.stream()
+                        .map(Type::getInternalName)
+                        .toArray(String[]::new)
+        );
         members.forEach(Member::end);
+        isFinished = true;
     }
 
     public final byte[] toBytes() {
@@ -150,5 +174,17 @@ public class ClassGenerator implements Accessible {
         this.modifiers |= Opcodes.ACC_ABSTRACT;
         isAbstract = true;
         return (T) this;
+    }
+
+    public final Type getType() {
+        return type;
+    }
+
+    public final Type getSuperType() {
+        return superType;
+    }
+
+    public final ArrayList<Type> getInterfaces() {
+        return (ArrayList<Type>) interfaces.clone();
     }
 }
