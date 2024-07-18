@@ -74,6 +74,14 @@ public final class TypeResolver {
         return type;
     }
 
+    public static String descriptorToInternal(String descriptor) {
+        if (descriptor.contains("[")) return descriptor;
+        String internal = descriptor.replaceAll("\\[", "");
+        if (internal.length()==1) return internal;
+        internal = internal.substring(1, internal.length()-1);
+        return internal;
+    }
+
     private static String replaceChars(String str) {
         str = str.replaceAll("\\.", "/");
         str = str.replaceAll("\\[", "");
