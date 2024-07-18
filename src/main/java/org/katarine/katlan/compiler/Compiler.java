@@ -1,9 +1,7 @@
 package org.katarine.katlan.compiler;
 
-import org.katarine.codegen.ClassGenerator;
-import org.katarine.codegen.TypeResolver;
+import org.katarine.codegen.*;
 import org.katarine.katlan.lib.ClassReference;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
@@ -15,11 +13,27 @@ import java.util.ArrayList;
 
 public class Compiler {
     public static void main(String[] args) throws IOException {
-        testClassCreationASM();
+//        testClassCreationASM();
+        testClassCreationCG();
     }
 
-    public static void testClassCreationCG() {
-        var cg = new ClassGenerator();
+    public static void testClassCreationCG() throws IOException {
+        var cg = new ClassGenerator("Example", new Type(Object.class));
+
+//        var constructor = cg.addMethod("<init>", (Signature) null, new Type(void.class), new Type[0]);
+//        constructor.
+
+        Method main = cg.addMethod("main", new Signature(), new Type(void.class), new Type[]{new Type(String[].class)}).static_();
+//        var leps = main.var(new Type(String.class), "leps").set("KLepaksASDFSAD");
+        var out = main.var(new Type(System.class), "out").field(true, "out", new Type(PrintStream.class));
+        out.invokeVoid(MethodType.VIRTUAL, "println", new Object[]{"lep"});
+        main.return_();
+        byte[] bytes = cg.toBytes();
+
+        var p = Paths.get("Example.class");
+        if (!Files.exists(p))
+            p = Files.createFile(p);
+        Files.write(p, bytes);
     }
 
     public static void testClassCreationASM() throws IOException {
