@@ -7,15 +7,16 @@ import org.objectweb.asm.Opcodes;
  * and {@link Signature} objects as string signatures.
  * @see Signature
  */
+@SuppressWarnings("StaticInitializerReferencesSubClass")
 public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
-    public static final PrimitiveType INT     = new PrimitiveType(int.class);
-    public static final PrimitiveType DOUBLE  = new PrimitiveType(double.class);
-    public static final PrimitiveType FLOAT   = new PrimitiveType(float.class);
-    public static final PrimitiveType LONG    = new PrimitiveType(long.class);
-    public static final PrimitiveType SHORT   = new PrimitiveType(short.class);
-    public static final PrimitiveType BYTE    = new PrimitiveType(byte.class);
-    public static final PrimitiveType BOOLEAN = new PrimitiveType(boolean.class);
-    public static final PrimitiveType CHAR    = new PrimitiveType(char.class);
+    public static final Type INT     = new PrimitiveType(int.class);
+    public static final Type DOUBLE  = new PrimitiveType(double.class);
+    public static final Type FLOAT   = new PrimitiveType(float.class);
+    public static final Type LONG    = new PrimitiveType(long.class);
+    public static final Type SHORT   = new PrimitiveType(short.class);
+    public static final Type BYTE    = new PrimitiveType(byte.class);
+    public static final Type BOOLEAN = new PrimitiveType(boolean.class);
+    public static final Type CHAR    = new PrimitiveType(char.class);
 
     /**
      * Provides a way to use type names (such as {@code org.example.Example}) to create {@link Type} objects.
@@ -43,8 +44,8 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
         }
     }
 
-    private static final class PrimitiveType extends Type {
-        public PrimitiveType(Class<?> clazz) {
+    public static final class PrimitiveType extends Type {
+        PrimitiveType(Class<?> clazz) {
             super(clazz);
         }
     }
@@ -76,6 +77,10 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
 
     public String getDescriptor() {
         return descriptor;
+    }
+
+    public String getInternalName() {
+        return TypeResolver.descriptorToInternal(getDescriptor());
     }
 
     public Signature getSignature() {
