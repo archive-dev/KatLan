@@ -20,11 +20,6 @@ public class Field extends Variable implements Member, Accessible {
             getType().getSignature().getSignature(),
             null);
 
-    public Field addModifier(int mod) {
-        this.modifiers |= mod;
-        return this;
-    }
-
     @Override
     public ClassGenerator getOwner() {
         return ((ClassGenerator.ClassScope) getOwnerScope()).getClazz();
