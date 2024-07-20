@@ -4,10 +4,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
-public class Variable { // todo: all ways to call method or do smth else should refer to this class or it's inheritors
+public class Variable implements Caller { // todo: all ways to call method or do smth else should refer to this class or it's inheritors
     private final Type type;
     private final String name;
 
@@ -22,6 +21,22 @@ public class Variable { // todo: all ways to call method or do smth else should 
         this.ownerScope = ownerScope;
         this.method = method;
         this.index = index;
+    }
+    
+    public Variable eq(Object value) {
+        var res = method.var(Type.BOOLEAN, "eq_"+value.hashCode()+"_"+this.index);
+
+        Consumer<MethodVisitor> compare = mv -> {
+            mv.visitVarInsn(getType().getLoadCode(), this.index);
+            if (value instanceof Variable v) {
+                mv.visitVarInsn(v.getType().getLoadCode(), v.index);
+            } else {
+                mv.visitLdcInsn(value);
+            }
+            mv.visitJumpInsn(Opcodes.IFEQ);
+        };
+
+        return res;
     }
 
     public Variable set(Object value) {
@@ -62,17 +77,31 @@ public class Variable { // todo: all ways to call method or do smth else should 
     }
 
     public void invokeVoid(MethodType methodType, String name, Object[] arguments) {
+        invoke(Type.VOID, methodType, name, arguments);
+    }
+
+    @Override
+    public Variable invoke(Type returnType, MethodType methodType, String name, Object[] arguments) {
         final ArrayList<Consumer<MethodVisitor>> instructions = new ArrayList<>();
-        instructions.add(mv -> {
-            mv.visitVarInsn(this.type.getLoadCode(), this.index);
-        });
+        if (methodType != MethodType.STATIC)
+            instructions.add(mv -> {
+                mv.visitVarInsn(this.type.getLoadCode(), this.index);
+            });
         for (var arg : arguments) {
-            instructions.addAll(handleObject(arg));
+            instructions.addAll(Utils.handleObject(arg));
         }
 
         switch (methodType) {
             case STATIC -> {
-
+                instructions.add(mv -> {
+                    mv.visitMethodInsn(
+                            Opcodes.INVOKESTATIC,
+                            this.type.getInternalName(),
+                            name,
+                            Utils.getMethodDescriptor(arguments, Type.VOID),
+                            false
+                    );
+                });
             }
             case VIRTUAL -> {
                 instructions.add(mv -> {
@@ -80,7 +109,29 @@ public class Variable { // todo: all ways to call method or do smth else should 
                             Opcodes.INVOKEVIRTUAL,
                             this.type.getInternalName(),
                             name,
-                            getMethodDescriptor(arguments, new Type(void.class)),
+                            Utils.getMethodDescriptor(arguments, Type.VOID),
+                            false
+                    );
+                });
+            }
+            case SPECIAL -> {
+                instructions.add(mv -> {
+                    mv.visitMethodInsn(
+                            Opcodes.INVOKESPECIAL,
+                            this.type.getInternalName(),
+                            name,
+                            Utils.getMethodDescriptor(arguments, Type.VOID),
+                            false
+                    );
+                });
+            }
+            case INTERFACE -> {
+                instructions.add(mv -> {
+                    mv.visitMethodInsn(
+                            Opcodes.INVOKEINTERFACE,
+                            this.type.getInternalName(),
+                            name,
+                            Utils.getMethodDescriptor(arguments, Type.VOID),
                             false
                     );
                 });
@@ -88,79 +139,14 @@ public class Variable { // todo: all ways to call method or do smth else should 
         }
 
         method.addInsns(instructions);
-    }
 
-    private String getMethodDescriptor(Object[] args, Type returnType) {
-        String ret = "(";
-        for (var arg : args) {
-            ret += getObjectDescriptor(arg);
+        if (returnType == Type.VOID) {
+            return null;
         }
-        ret += ")";
-        ret+=returnType.getDescriptor();
+
+        var ret = method.var(returnType, name+"_ret"+"_"+this.index);
+        method.addInsn(mv -> mv.visitVarInsn(ret.type.getStoreCode(), ret.index));
         return ret;
-    }
-
-    private String getObjectDescriptor(Object obj) {
-        if (obj instanceof Variable v) {
-            return v.type.getDescriptor();
-        }
-        return TypeResolver.getTypeDescriptor(obj.getClass());
-    }
-
-    private List<Consumer<MethodVisitor>> handleObject(Object obj) {
-        final List<Consumer<MethodVisitor>> ret = new ArrayList<>();
-        switch (obj) {
-            case null -> ret.add(mv -> mv.visitInsn(Opcodes.ACONST_NULL));
-            case Variable v -> ret.add(mv -> mv.visitVarInsn(v.type.getLoadCode(), v.index));
-            case Integer i when i >= -1 && i <= 5 -> ret.add(mv -> mv.visitInsn(iConstOpcode(i)));
-            case Float f when f >= 0 && f <= 2 -> ret.add(mv -> mv.visitInsn(fConstOpcode(f)));
-            case Long l when l >= 0 && l <= 1 -> ret.add(mv -> mv.visitInsn(lConstOpcode(l)));
-            case Double d when d >= 0 && d <= 1 -> ret.add(mv -> mv.visitInsn(dConstOpcode(d)));
-            default -> ret.add(mv -> mv.visitLdcInsn(obj));
-        }
-        return ret;
-    }
-
-    private int iConstOpcode(int i) {
-        return switch (i) {
-            case -1 -> Opcodes.ICONST_M1;
-            case 0 -> Opcodes.ICONST_0;
-            case 1 -> Opcodes.ICONST_1;
-            case 2 -> Opcodes.ICONST_2;
-            case 3 -> Opcodes.ICONST_3;
-            case 4 -> Opcodes.ICONST_4;
-            case 5 -> Opcodes.ICONST_5;
-            default -> throw new IndexOutOfBoundsException();
-        };
-    }
-
-    private int fConstOpcode(float f) {
-        if (f == 0f) {
-            return Opcodes.FCONST_0;
-        } else if (f == 1f) {
-            return Opcodes.FCONST_1;
-        } else if (f == 2f) {
-            return Opcodes.FCONST_2;
-        }
-        throw new IndexOutOfBoundsException();
-    }
-
-    private int lConstOpcode(long l) {
-        if (l == 0L) {
-            return Opcodes.LCONST_0;
-        } else if (l == 1L) {
-            return Opcodes.LCONST_1;
-        }
-        throw new IndexOutOfBoundsException();
-    }
-
-    private int dConstOpcode(double d) {
-        if (d == 0d) {
-            return Opcodes.DCONST_0;
-        } else if (d == 1d) {
-            return Opcodes.DCONST_1;
-        }
-        throw new IndexOutOfBoundsException();
     }
 
     public Type getType() {
@@ -173,5 +159,13 @@ public class Variable { // todo: all ways to call method or do smth else should 
 
     public CodeScope getOwnerScope() {
         return ownerScope;
+    }
+
+    int getIndex() {
+        return index;
+    }
+
+    public Method getMethod() {
+        return method;
     }
 }

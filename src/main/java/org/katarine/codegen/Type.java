@@ -17,6 +17,7 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
     public static final Type BYTE    = new PrimitiveType(byte.class);
     public static final Type BOOLEAN = new PrimitiveType(boolean.class);
     public static final Type CHAR    = new PrimitiveType(char.class);
+    public static final Type VOID    = new PrimitiveType(void.class);
 
     /**
      * Provides a way to use type names (such as {@code org.example.Example}) to create {@link Type} objects.
@@ -47,6 +48,11 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
     public static final class PrimitiveType extends Type {
         PrimitiveType(Class<?> clazz) {
             super(clazz);
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return true;
         }
     }
 
@@ -133,5 +139,9 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
             case "J" -> Opcodes.LLOAD;
             default -> throw new IllegalStateException("Unexpected value: " + this.getDescriptor());
         };
+    }
+
+    public boolean isPrimitive() {
+        return TypeResolver.isPrimitive(this.getDescriptor());
     }
 }

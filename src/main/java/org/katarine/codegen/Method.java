@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
-public class Method implements Member, Accessible {
+public class Method implements Member, Accessible, Caller {
     private final ClassGenerator owner;
     private final String name;
     private final List<Type> parameterTypes = new ArrayList<>();
@@ -41,6 +41,13 @@ public class Method implements Member, Accessible {
     private boolean isPrivate = false;
     private boolean isProtected = false;
     private boolean isAbstract = false;
+
+    public MethodType getMethodType() {
+        if (isStatic()) return MethodType.STATIC;
+        if (isPrivate()) return MethodType.SPECIAL;
+        if (owner.isInterface()) return MethodType.INTERFACE;
+        return MethodType.VIRTUAL;
+    }
 
     private HashMap<String, Type> cachedParameters;
 
@@ -84,6 +91,20 @@ public class Method implements Member, Accessible {
 
     public Variable var(Type type, String name) {
         return mainScope.get().createVariable(type, name);
+    }
+
+    private Variable this_ = null;
+    public Variable this_() {
+        if (this_ != null) return this_;
+        this_ = new Variable(owner.getType(), "this", mainScope.get(), this, 0);
+        return this_;
+    }
+
+    private Variable super_ = null;
+    public Variable super_() {
+        if (super_ != null) return super_;
+        super_ = new Variable(owner.getSuperType(), "super", mainScope.get(), this, 0);
+        return super_;
     }
 
     public void return_() {
@@ -181,5 +202,64 @@ public class Method implements Member, Accessible {
         this.modifiers |= Opcodes.ACC_ABSTRACT;
         this.isAbstract = true;
         return (T) this;
+    }
+
+    @Override
+    public void invokeVoid(MethodType type, String name, Object[] arguments) {
+        invoke(Type.VOID, type, name, arguments);
+    }
+
+    @Override
+    public Variable invoke(Type returnType, MethodType methodType, String name, Object[] arguments) {
+        final ArrayList<Consumer<MethodVisitor>> instructions = new ArrayList<>();
+        if (methodType != MethodType.STATIC)
+            instructions.add(mv -> {
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+            });
+        for (var arg : arguments) {
+            instructions.addAll(Utils.handleObject(arg));
+        }
+
+        switch (methodType) {
+            case STATIC -> {
+
+            }
+            case VIRTUAL -> {
+                instructions.add(mv -> {
+                    mv.visitMethodInsn(
+                            Opcodes.INVOKEVIRTUAL,
+                            this.getOwner().getType().getInternalName(),
+                            name,
+                            Utils.getMethodDescriptor(arguments, Type.VOID),
+                            false
+                    );
+                });
+            }
+            case SPECIAL -> {
+                instructions.add(mv -> {
+                    mv.visitMethodInsn(
+                            Opcodes.INVOKESPECIAL,
+                            this.getOwner().getType().getInternalName(),
+                            name,
+                            Utils.getMethodDescriptor(arguments, Type.VOID),
+                            false
+                    );
+                });
+            }
+        }
+
+        addInsns(instructions);
+
+        if (returnType == Type.VOID) {
+            return null;
+        }
+
+        var ret = var(returnType, name+"_ret"+"_"+0);
+        addInsn(mv -> mv.visitVarInsn(ret.getType().getStoreCode(), ret.getIndex()));
+        return ret;
+    }
+
+    public Type getReturnType() {
+        return returnType;
     }
 }

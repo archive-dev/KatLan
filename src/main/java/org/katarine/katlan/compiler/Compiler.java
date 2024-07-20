@@ -7,26 +7,41 @@ import org.objectweb.asm.Opcodes;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.ConstantCallSite;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.StringConcatFactory;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class Compiler {
+    public static CallSite print(MethodHandles.Lookup lookup,
+                                 String name,
+                                 java.lang.invoke.MethodType type) throws NoSuchMethodException, IllegalAccessException {
+        var mh = lookup.findVirtual(PrintStream.class, "println", type);
+        return new ConstantCallSite(mh);
+    }
+
     public static void main(String[] args) throws IOException {
+
 //        testClassCreationASM();
-        testClassCreationCG();
+//        testClassCreationCG();
     }
 
     public static void testClassCreationCG() throws IOException {
         var cg = new ClassGenerator("Example", new Type(Object.class));
 
-//        var constructor = cg.addMethod("<init>", (Signature) null, new Type(void.class), new Type[0]);
-//        constructor.
+        var empty = new Type[0];
+
+        var constructor = cg.addMethod("<init>", new Signature(), Type.VOID, empty);
+        constructor.super_().invokeVoid(MethodType.SPECIAL, "<init>", new Object[0]);
+        constructor.return_();
 
         Method main = cg.addMethod("main", new Signature(), new Type(void.class), new Type[]{new Type(String[].class)}).static_();
-//        var leps = main.var(new Type(String.class), "leps").set("KLepaksASDFSAD");
+        var leps = main.var(new Type(String.class), "leps").set("KLepaksASDFSAD");
         var out = main.var(new Type(System.class), "out").field(true, "out", new Type(PrintStream.class));
-        out.invokeVoid(MethodType.VIRTUAL, "println", new Object[]{"lep"});
+        out.invokeVoid(MethodType.VIRTUAL, "println", new Object[]{leps});
         main.return_();
         byte[] bytes = cg.toBytes();
 

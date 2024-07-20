@@ -16,10 +16,16 @@ public class ClassGenerator implements Accessible {
     private final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
     private int modifiers = 0;
 
+    private boolean isInterface = false;
+
     public ClassGenerator(String name, Type superType) {
         this.name = name;
         this.type = new Type.SimpleType(name);
         this.superType = superType;
+    }
+
+    public boolean isInterface() {
+        return isInterface;
     }
 
     public static class ClassScope extends CodeScope {
@@ -173,6 +179,12 @@ public class ClassGenerator implements Accessible {
     public <T extends Accessible> T abstract_() {
         this.modifiers |= Opcodes.ACC_ABSTRACT;
         isAbstract = true;
+        return (T) this;
+    }
+
+    public <T extends Accessible> T interface_() {
+        this.modifiers |= Opcodes.ACC_INTERFACE;
+        isInterface = true;
         return (T) this;
     }
 
