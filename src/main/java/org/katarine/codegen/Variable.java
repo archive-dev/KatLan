@@ -1,5 +1,6 @@
 package org.katarine.codegen;
 
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -22,19 +23,39 @@ public class Variable implements Caller { // todo: all ways to call method or do
         this.method = method;
         this.index = index;
     }
-    
+
+    /**
+     * Compares the current Variable with the specified value and returns a new Variable storing the result.
+     *
+     * @param value The value to compare with the current Variable
+     * @return A new Variable storing the result of the comparison
+     */
     public Variable eq(Object value) {
         var res = method.var(Type.BOOLEAN, "eq_"+value.hashCode()+"_"+this.index);
 
-        Consumer<MethodVisitor> compare = mv -> {
+        final Label ifEq = new Label();
+        final Label endIf = new Label();
+        method.addInsn(mv -> {
             mv.visitVarInsn(getType().getLoadCode(), this.index);
             if (value instanceof Variable v) {
                 mv.visitVarInsn(v.getType().getLoadCode(), v.index);
             } else {
                 mv.visitLdcInsn(value);
             }
-            mv.visitJumpInsn(Opcodes.IFEQ);
-        };
+
+            mv.visitJumpInsn(Opcodes.IF_ICMPNE, ifEq);
+
+            mv.visitLdcInsn(1);
+
+            mv.visitJumpInsn(Opcodes.GOTO, endIf);
+            mv.visitLabel(ifEq);
+
+            mv.visitLdcInsn(0);
+
+            mv.visitLabel(endIf);
+
+            mv.visitVarInsn(Type.BOOLEAN.getStoreCode(), res.getIndex());
+        });
 
         return res;
     }
@@ -46,9 +67,14 @@ public class Variable implements Caller { // todo: all ways to call method or do
                 mv.visitVarInsn(v.type.getLoadCode(), v.index);
                 mv.visitVarInsn(this.type.getStoreCode(), index);
             };
-        } else {
+        } else if (value != null) {
             setter = (mv) -> {
                 mv.visitLdcInsn(value);
+                mv.visitVarInsn(this.type.getStoreCode(), index);
+            };
+        } else {
+            setter = mv -> {
+                mv.visitInsn(Opcodes.ACONST_NULL);
                 mv.visitVarInsn(this.type.getStoreCode(), index);
             };
         }
@@ -92,39 +118,33 @@ public class Variable implements Caller { // todo: all ways to call method or do
         }
 
         switch (methodType) {
-            case STATIC -> {
-                instructions.add(mv -> {
-                    mv.visitMethodInsn(
-                            Opcodes.INVOKESTATIC,
-                            this.type.getInternalName(),
-                            name,
-                            Utils.getMethodDescriptor(arguments, Type.VOID),
-                            false
-                    );
-                });
-            }
-            case VIRTUAL -> {
-                instructions.add(mv -> {
-                    mv.visitMethodInsn(
-                            Opcodes.INVOKEVIRTUAL,
-                            this.type.getInternalName(),
-                            name,
-                            Utils.getMethodDescriptor(arguments, Type.VOID),
-                            false
-                    );
-                });
-            }
-            case SPECIAL -> {
-                instructions.add(mv -> {
-                    mv.visitMethodInsn(
-                            Opcodes.INVOKESPECIAL,
-                            this.type.getInternalName(),
-                            name,
-                            Utils.getMethodDescriptor(arguments, Type.VOID),
-                            false
-                    );
-                });
-            }
+            case STATIC -> instructions.add(mv -> {
+                mv.visitMethodInsn(
+                        Opcodes.INVOKESTATIC,
+                        this.type.getInternalName(),
+                        name,
+                        Utils.getMethodDescriptor(arguments, Type.VOID),
+                        false
+                );
+            });
+            case VIRTUAL -> instructions.add(mv -> {
+                mv.visitMethodInsn(
+                        Opcodes.INVOKEVIRTUAL,
+                        this.type.getInternalName(),
+                        name,
+                        Utils.getMethodDescriptor(arguments, Type.VOID),
+                        false
+                );
+            });
+            case SPECIAL -> instructions.add(mv -> {
+                mv.visitMethodInsn(
+                        Opcodes.INVOKESPECIAL,
+                        this.type.getInternalName(),
+                        name,
+                        Utils.getMethodDescriptor(arguments, Type.VOID),
+                        false
+                );
+            });
             case INTERFACE -> {
                 instructions.add(mv -> {
                     mv.visitMethodInsn(
