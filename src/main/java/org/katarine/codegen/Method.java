@@ -1,13 +1,11 @@
 package org.katarine.codegen;
 
 import org.katarine.katlan.lib.struct.Pair;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -23,6 +21,9 @@ public class Method implements Member, Accessible, Caller {
 
     private int modifiers = Opcodes.ACC_PUBLIC;
     private final Supplier<MethodVisitor> mvProvider;
+
+    private final Label startLabel = new Label();
+    private final Label endLabel = new Label();
 
     // lazy initialization because of methodscope constructor
     private MethodScope ms;
@@ -107,8 +108,27 @@ public class Method implements Member, Accessible, Caller {
         return super_;
     }
 
+    public Variable param(int i) {
+        return mainScope.get().variables.get(i);
+    }
+
+    public Variable param(String name) {
+        return mainScope.get().variables.get(name);
+    }
+
     public void return_() {
-        opQueue.add(mv -> mv.visitInsn(Opcodes.RETURN));
+        addInsn(mv -> mv.visitInsn(Opcodes.RETURN));
+    }
+
+    public void return_(Object value) {
+        if (value instanceof Variable v) {
+            addInsn(mv ->mv.visitVarInsn(v.getType().getLoadCode(), v.getIndex()));
+        } else {
+            addInsn(mv ->mv.visitLdcInsn(value));
+        }
+        addInsn(mv -> {
+            mv.visitInsn(this.getReturnType().getReturnCode());
+        });
     }
 
     public String getDescriptor() {
@@ -145,8 +165,20 @@ public class Method implements Member, Accessible, Caller {
     @Override
     public void end() {
         MethodVisitor mv = mvProvider.get();
+
+        opQueue.addFirst(visitor -> visitor.visitLabel(startLabel));
+        opQueue.addLast(visitor -> visitor.visitLabel(endLabel));
         opQueue.addLast(visitor -> visitor.visitMaxs(0, 0));
+
         opQueue.forEach(op -> op.accept(mv));
+    }
+
+    public final Label getStartLabel() {
+        return startLabel;
+    }
+
+    public final Label getEndLabel() {
+        return endLabel;
     }
 
     @Override
