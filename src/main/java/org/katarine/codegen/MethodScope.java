@@ -30,6 +30,16 @@ public class MethodScope extends CodeScope {
 
     private Variable createVariable(Type type, String name, Object key) {
         var var = new Variable(type, name, this, this.method, varCounter++);
+
+        this.method.addInsn(mv -> mv.visitLocalVariable(
+                name,
+                type.getDescriptor(),
+                type.getSignature().getSignature(),
+                method.getStartLabel(),
+                method.getEndLabel(),
+                var.getIndex())
+        );
+
         this.variables.put(key, var);
         return var;
     }
