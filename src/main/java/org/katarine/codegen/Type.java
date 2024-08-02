@@ -19,6 +19,8 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
     public static final Type CHAR    = new PrimitiveType(char.class);
     public static final Type VOID    = new PrimitiveType(void.class);
 
+    public static final Type OBJECT  = new Type(Object.class);
+
     /**
      * Provides a way to use type names (such as {@code org.example.Example}) to create {@link Type} objects.
      * @see Type
@@ -137,6 +139,19 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
             case "F" -> Opcodes.FLOAD;
             case "D" -> Opcodes.DLOAD;
             case "J" -> Opcodes.LLOAD;
+            default -> throw new IllegalStateException("Unexpected value: " + this.getDescriptor());
+        };
+    }
+
+    public int getReturnCode() {
+        if (!TypeResolver.isPrimitive(this.getDescriptor())) {
+            return Opcodes.ARETURN;
+        }
+        return switch (this.getDescriptor()) {
+            case "Z", "B", "C", "S", "I" -> Opcodes.IRETURN;
+            case "F" -> Opcodes.FRETURN;
+            case "D" -> Opcodes.DRETURN;
+            case "J" -> Opcodes.LRETURN;
             default -> throw new IllegalStateException("Unexpected value: " + this.getDescriptor());
         };
     }
