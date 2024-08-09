@@ -7,7 +7,7 @@ import org.objectweb.asm.Opcodes;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public class Variable implements Caller { // todo: all ways to call method or do smth else should refer to this class or it's inheritors
+public class Variable implements Caller {
     private final Type type;
     private final String name;
 
@@ -87,13 +87,9 @@ public class Variable implements Caller { // todo: all ways to call method or do
 
         Consumer<MethodVisitor> getter;
         if (isStatic) {
-            getter = (mv) -> {
-                mv.visitFieldInsn(Opcodes.GETSTATIC, this.type.getInternalName(), fieldName, fieldType.getDescriptor());
-            };
+            getter = (mv) -> mv.visitFieldInsn(Opcodes.GETSTATIC, this.type.getInternalName(), fieldName, fieldType.getDescriptor());
         } else {
-            getter = (mv) -> {
-                mv.visitFieldInsn(Opcodes.GETFIELD, this.type.getInternalName(), fieldName, fieldType.getDescriptor());
-            };
+            getter = (mv) -> mv.visitFieldInsn(Opcodes.GETFIELD, this.type.getInternalName(), fieldName, fieldType.getDescriptor());
         }
         method.addInsn(getter);
 
@@ -102,63 +98,65 @@ public class Variable implements Caller { // todo: all ways to call method or do
         return var;
     }
 
-    public void invokeVoid(MethodType methodType, String name, Object[] arguments) {
-        invoke(Type.VOID, methodType, name, arguments);
+    @Override
+    public Variable invoke(Variable owner, Method method, Object[] arguments) {
+        return invoke(owner, method.getReturnType(), method.getMethodType(), method.getName(), arguments);
+    }
+
+    public Variable invoke(Method method, Object[] arguments) {
+        return invoke(this, method.getReturnType(), method.getMethodType(), method.getName(), arguments);
+    }
+
+    public Variable invokeVoid(MethodType methodType, String name, Object[] arguments) {
+        return invoke(this, Type.VOID, methodType, name, arguments);
+    }
+
+    public Variable invoke(Type returnType, MethodType methodType, String name, Object[] arguments) {
+        return invoke(this, returnType, methodType, name, arguments);
     }
 
     @Override
-    public Variable invoke(Type returnType, MethodType methodType, String name, Object[] arguments) {
+    public void invokeVoid(Variable owner, MethodType methodType, String name, Object[] arguments) {
+        invoke(owner, Type.VOID, methodType, name, arguments);
+    }
+
+    @Override
+    public Variable invoke(Variable owner, Type returnType, MethodType methodType, String name, Object[] arguments) {
         final ArrayList<Consumer<MethodVisitor>> instructions = new ArrayList<>();
         if (methodType != MethodType.STATIC)
-            instructions.add(mv -> {
-                mv.visitVarInsn(this.type.getLoadCode(), this.index);
-            });
+            method.ALOAD(owner.getIndex());
         for (var arg : arguments) {
             instructions.addAll(Utils.handleObject(arg));
         }
+        method.addInsns(instructions);
 
         switch (methodType) {
-            case STATIC -> instructions.add(mv -> {
-                mv.visitMethodInsn(
-                        Opcodes.INVOKESTATIC,
-                        this.type.getInternalName(),
-                        name,
-                        Utils.getMethodDescriptor(arguments, Type.VOID),
-                        false
-                );
-            });
-            case VIRTUAL -> instructions.add(mv -> {
-                mv.visitMethodInsn(
-                        Opcodes.INVOKEVIRTUAL,
-                        this.type.getInternalName(),
-                        name,
-                        Utils.getMethodDescriptor(arguments, Type.VOID),
-                        false
-                );
-            });
-            case SPECIAL -> instructions.add(mv -> {
-                mv.visitMethodInsn(
-                        Opcodes.INVOKESPECIAL,
-                        this.type.getInternalName(),
-                        name,
-                        Utils.getMethodDescriptor(arguments, Type.VOID),
-                        false
-                );
-            });
-            case INTERFACE -> {
-                instructions.add(mv -> {
-                    mv.visitMethodInsn(
-                            Opcodes.INVOKEINTERFACE,
-                            this.type.getInternalName(),
-                            name,
-                            Utils.getMethodDescriptor(arguments, Type.VOID),
-                            false
-                    );
-                });
-            }
+            case STATIC -> method.INVOKESTATIC(
+                    owner.getType().getInternalName(),
+                    name,
+                    Utils.getMethodDescriptor(arguments, Type.VOID),
+                    false
+            );
+            case VIRTUAL -> method.INVOKEVIRTUAL(
+                    owner.getType().getInternalName(),
+                    name,
+                    Utils.getMethodDescriptor(arguments, Type.VOID),
+                    false
+            );
+            case SPECIAL -> method.INVOKESPECIAL(
+                    owner.getType().getInternalName(),
+                    name,
+                    Utils.getMethodDescriptor(arguments, Type.VOID),
+                    false
+            );
+            case INTERFACE -> method.INVOKEINTERFACE(
+                    owner.getType().getInternalName(),
+                    name,
+                    Utils.getMethodDescriptor(arguments, Type.VOID)
+            );
+            default -> throw new IllegalArgumentException();
         }
 
-        method.addInsns(instructions);
 
         if (returnType == Type.VOID) {
             return null;
@@ -187,5 +185,58 @@ public class Variable implements Caller { // todo: all ways to call method or do
 
     public Method getMethod() {
         return method;
+    }
+
+    void LOAD() {
+        method.addInsn(mv -> mv.visitVarInsn(getType().getLoadCode(), getIndex()));
+    }
+
+    void CMPNE(Label label) {
+        if (!type.isPrimitive()) {
+            method.IF_ACMPEQ(label);
+            return;
+        }
+        switch (this.type.getDescriptor()) {
+            case "Z", "B", "C", "S", "I" ->
+                method.IF_ICMPEQ(label);
+            case "F" -> {
+                method.FCMPL();
+                method.IFEQ(label);
+            }
+            case "D" -> {
+                method.DCMPL();
+                method.IFEQ(label);
+            }
+            case "J" -> {
+                method.LCMP();
+                method.IFEQ(label);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + this.type.getDescriptor());
+        }
+    }
+
+    void CMPEQ(Label label) {
+        if (!type.isPrimitive()) {
+            method.IF_ACMPNE(label);
+            return;
+        }
+        switch (this.type.getDescriptor()) {
+            case "Z", "B", "C", "S", "I" -> {
+                method.IF_ICMPNE(label);
+            }
+            case "F" -> {
+                method.FCMPL();
+                method.IFNE(label);
+            }
+            case "D" -> {
+                method.DCMPL();
+                method.IFNE(label);
+            }
+            case "J" -> {
+                method.LCMP();
+                method.IFNE(label);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + this.type.getDescriptor());
+        }
     }
 }
