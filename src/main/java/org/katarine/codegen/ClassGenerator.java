@@ -96,7 +96,8 @@ public class ClassGenerator implements Accessible {
     }
 
     public final byte[] toBytes() {
-        finish();
+        if (!isFinished)
+            finish();
         return cw.toByteArray();
     }
 
@@ -198,5 +199,9 @@ public class ClassGenerator implements Accessible {
 
     public final ArrayList<Type> getInterfaces() {
         return (ArrayList<Type>) interfaces.clone();
+    }
+
+    public String getName() {
+        return name;
     }
 }
