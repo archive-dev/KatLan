@@ -19,7 +19,7 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
     public static final PrimitiveType CHAR    = new PrimitiveType(char.class);
     public static final PrimitiveType VOID    = new PrimitiveType(void.class);
 
-    public static final Type OBJECT  = new Type(Object.class);
+    public static final Type OBJECT = new Type(Object.class);
 
     /**
      * Provides a way to use type names (such as {@code org.example.Example}) to create {@link Type} objects.
@@ -142,8 +142,10 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
     }
 
     public Type(String descriptor, Signature signature) {
-        if (TypeResolver.isPrimitive(descriptor))
-            throw new IllegalArgumentException("For primitive types use defined constants or use PrimitiveType class");
+        if (TypeResolver.isPrimitive(descriptor)) {
+//            throw new RuntimeException("For primitive types use defined constants or use PrimitiveType class");
+            System.out.println("For primitive types use defined constants or use PrimitiveType class");
+        }
         this.descriptor = descriptor;
         this.signature = signature;
     }

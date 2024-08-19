@@ -3,8 +3,9 @@ grammar KatLan;
 class: ENDLINE* package? importBlock? (classDef | interfaceDef | unnamedClassDef | annotationDef) ENDLINE*;
 
 package: 'package' name ENDLINE+;
-importBlock: (importStatement)+;
+importBlock: (importStatement | importMethod)+;
 importStatement: 'import' name ('as' name)? ENDLINE+;
+importMethod: 'import' name '()' ('as' name)? ENDLINE+;
 
 unnamedClassDef: packageBlock? ENDLINE* (EXTENDS name (',' name)* ENDLINE*)? ('{' ENDLINE* classBlock? ENDLINE* '}')? ENDLINE* packageBlock?;
 

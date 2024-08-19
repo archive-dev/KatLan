@@ -1,6 +1,14 @@
 package org.katarine.katlan.compiler;
 
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
 import org.katarine.codegen.*;
+import org.katarine.katlan.antlr4.KatLanLexer;
+import org.katarine.katlan.antlr4.KatLanParser;
+import org.katarine.katlan.compiler.visitors.MethodImportsVisitor;
+import org.katarine.katlan.compiler.visitors.TypeImportsVisitor;
 import org.katarine.katlan.lib.ClassReference;
 import org.katarine.katlan.lib.struct.Pair;
 import org.objectweb.asm.ClassWriter;
@@ -15,7 +23,15 @@ import java.util.ArrayList;
 public class Compiler {
     public static void main(String[] args) throws IOException {
 //        testClassCreationASM();
-        testClassCreationCG();
+//        testClassCreationCG();
+        CharStream cs = CharStreams.fromFileName(args[0]);
+        KatLanLexer klx = new KatLanLexer(cs);
+        CommonTokenStream cts = new CommonTokenStream(klx);
+        KatLanParser klp = new KatLanParser(cts);
+
+//        klp.class_();
+        System.out.println(new MethodImportsVisitor().visitImportBlock(klp.class_().importBlock()));
+        System.out.println(new TypeImportsVisitor().visitImportBlock(klp.class_().importBlock()));
     }
 
     public static void testClassCreationCG() throws IOException {

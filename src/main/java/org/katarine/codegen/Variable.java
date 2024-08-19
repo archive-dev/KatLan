@@ -35,65 +35,89 @@ public class Variable implements Caller {
 
         final Label ifEq = new Label();
         final Label endIf = new Label();
-        method.addInsn(mv -> {
-            mv.visitVarInsn(getType().getLoadCode(), this.index);
-            if (value instanceof Variable v) {
-                mv.visitVarInsn(v.getType().getLoadCode(), v.index);
-            } else {
-                mv.visitLdcInsn(value);
-            }
+        LOAD();
+        if (value instanceof Variable v) {
+            v.LOAD();
+        } else {
+            method.LDC(value);
+        }
 
-            mv.visitJumpInsn(Opcodes.IF_ICMPNE, ifEq);
+        CMPNE(ifEq);
 
-            mv.visitLdcInsn(1);
+        method.LDC(1);
 
-            mv.visitJumpInsn(Opcodes.GOTO, endIf);
-            mv.visitLabel(ifEq);
+        method.GOTO(endIf);
+        method.LABEL(ifEq);
 
-            mv.visitLdcInsn(0);
+        method.LDC(0);
 
-            mv.visitLabel(endIf);
+        method.LABEL(endIf);
 
-            mv.visitVarInsn(Type.BOOLEAN.getStoreCode(), res.getIndex());
-        });
+        res.STORE();
+
+        return res;
+    }
+
+    /**
+     * Compares the current Variable with the specified value and returns a new Variable storing the result.
+     *
+     * @param value The value to compare with the current Variable
+     * @return A new Variable storing the result of the comparison
+     */
+    public Variable ne(Object value) {
+        var res = method.var(Type.BOOLEAN, "ne_"+value.hashCode()+"_"+this.index);
+
+        final Label ifEq = new Label();
+        final Label endIf = new Label();
+//        method.addInsn(mv -> {
+        LOAD();
+        if (value instanceof Variable v) {
+            v.LOAD();
+        } else {
+            method.LDC(value);
+        }
+
+        CMPEQ(ifEq);
+
+        method.LDC(1);
+
+        method.GOTO(endIf);
+        method.LABEL(ifEq);
+
+        method.LDC(0);
+
+        method.LABEL(endIf);
+
+        res.STORE();
+//        });
 
         return res;
     }
 
     public Variable set(Object value) {
-        Consumer<MethodVisitor> setter;
         if (value instanceof Variable v) {
-            setter = (mv) -> {
-                mv.visitVarInsn(v.type.getLoadCode(), v.index);
-                mv.visitVarInsn(this.type.getStoreCode(), index);
-            };
+            v.LOAD();
+            this.STORE();
         } else if (value != null) {
-            setter = (mv) -> {
-                mv.visitLdcInsn(value);
-                mv.visitVarInsn(this.type.getStoreCode(), index);
-            };
+            method.LDC(value);
+            this.STORE();
         } else {
-            setter = mv -> {
-                mv.visitInsn(Opcodes.ACONST_NULL);
-                mv.visitVarInsn(this.type.getStoreCode(), index);
-            };
+            method.ACONST_NULL();
+            this.STORE();
         }
-        method.addInsn(setter);
         return this;
     }
 
     public Variable field(boolean isStatic, String fieldName, Type fieldType) {
         Variable var = method.var(fieldType, fieldName);
 
-        Consumer<MethodVisitor> getter;
         if (isStatic) {
-            getter = (mv) -> mv.visitFieldInsn(Opcodes.GETSTATIC, this.type.getInternalName(), fieldName, fieldType.getDescriptor());
+            method.GETSTATIC(this.type.getInternalName(), fieldName, fieldType.getDescriptor());
         } else {
-            getter = (mv) -> mv.visitFieldInsn(Opcodes.GETFIELD, this.type.getInternalName(), fieldName, fieldType.getDescriptor());
+            method.GETFIELD(this.type.getInternalName(), fieldName, fieldType.getDescriptor());
         }
-        method.addInsn(getter);
 
-        method.addInsn(mv -> mv.visitVarInsn(var.type.getStoreCode(), var.index));
+        var.STORE();
 
         return var;
     }
@@ -124,7 +148,7 @@ public class Variable implements Caller {
     public Variable invoke(Variable owner, Type returnType, MethodType methodType, String name, Object[] arguments) {
         final ArrayList<Consumer<MethodVisitor>> instructions = new ArrayList<>();
         if (methodType != MethodType.STATIC)
-            method.ALOAD(owner.getIndex());
+            owner.LOAD();
         for (var arg : arguments) {
             instructions.addAll(Utils.handleObject(arg));
         }
@@ -163,7 +187,7 @@ public class Variable implements Caller {
         }
 
         var ret = method.var(returnType, name+"_ret"+"_"+this.index);
-        method.addInsn(mv -> mv.visitVarInsn(ret.type.getStoreCode(), ret.index));
+        ret.STORE();
         return ret;
     }
 
@@ -189,6 +213,10 @@ public class Variable implements Caller {
 
     void LOAD() {
         method.addInsn(mv -> mv.visitVarInsn(getType().getLoadCode(), getIndex()));
+    }
+
+    void STORE() {
+        method.addInsn(mv -> mv.visitVarInsn(getType().getStoreCode(), getIndex()));
     }
 
     void CMPNE(Label label) {

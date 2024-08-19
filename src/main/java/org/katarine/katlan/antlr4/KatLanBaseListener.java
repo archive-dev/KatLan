@@ -65,6 +65,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterImportMethod(KatLanParser.ImportMethodContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitImportMethod(KatLanParser.ImportMethodContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterUnnamedClassDef(KatLanParser.UnnamedClassDefContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -48,6 +48,16 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitImportStatement(KatLanParser.ImportStatementContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link KatLanParser#importMethod}.
+	 * @param ctx the parse tree
+	 */
+	void enterImportMethod(KatLanParser.ImportMethodContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#importMethod}.
+	 * @param ctx the parse tree
+	 */
+	void exitImportMethod(KatLanParser.ImportMethodContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link KatLanParser#unnamedClassDef}.
 	 * @param ctx the parse tree
 	 */

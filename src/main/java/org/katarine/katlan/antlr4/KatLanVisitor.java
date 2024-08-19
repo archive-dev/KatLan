@@ -35,6 +35,12 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitImportStatement(KatLanParser.ImportStatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link KatLanParser#importMethod}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitImportMethod(KatLanParser.ImportMethodContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link KatLanParser#unnamedClassDef}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
