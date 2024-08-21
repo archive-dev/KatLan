@@ -46,7 +46,7 @@ public class KatLanBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitImportMethod(KatLanParser.ImportMethodContext ctx) { return visitChildren(ctx); }
+	@Override public T visitImportStatic(KatLanParser.ImportStaticContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -572,4 +572,11 @@ public class KatLanBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitNumeric_value(KatLanParser.Numeric_valueContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitExtends(KatLanParser.ExtendsContext ctx) { return visitChildren(ctx); }
 }

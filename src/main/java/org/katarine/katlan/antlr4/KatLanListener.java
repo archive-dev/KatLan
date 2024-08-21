@@ -48,15 +48,15 @@ public interface KatLanListener extends ParseTreeListener {
 	 */
 	void exitImportStatement(KatLanParser.ImportStatementContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link KatLanParser#importMethod}.
+	 * Enter a parse tree produced by {@link KatLanParser#importStatic}.
 	 * @param ctx the parse tree
 	 */
-	void enterImportMethod(KatLanParser.ImportMethodContext ctx);
+	void enterImportStatic(KatLanParser.ImportStaticContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link KatLanParser#importMethod}.
+	 * Exit a parse tree produced by {@link KatLanParser#importStatic}.
 	 * @param ctx the parse tree
 	 */
-	void exitImportMethod(KatLanParser.ImportMethodContext ctx);
+	void exitImportStatic(KatLanParser.ImportStaticContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KatLanParser#unnamedClassDef}.
 	 * @param ctx the parse tree
@@ -807,4 +807,14 @@ public interface KatLanListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitNumeric_value(KatLanParser.Numeric_valueContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KatLanParser#extends}.
+	 * @param ctx the parse tree
+	 */
+	void enterExtends(KatLanParser.ExtendsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KatLanParser#extends}.
+	 * @param ctx the parse tree
+	 */
+	void exitExtends(KatLanParser.ExtendsContext ctx);
 }

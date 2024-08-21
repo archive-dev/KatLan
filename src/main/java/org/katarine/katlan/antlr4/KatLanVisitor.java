@@ -35,11 +35,11 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitImportStatement(KatLanParser.ImportStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link KatLanParser#importMethod}.
+	 * Visit a parse tree produced by {@link KatLanParser#importStatic}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitImportMethod(KatLanParser.ImportMethodContext ctx);
+	T visitImportStatic(KatLanParser.ImportStaticContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KatLanParser#unnamedClassDef}.
 	 * @param ctx the parse tree
@@ -490,4 +490,10 @@ public interface KatLanVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitNumeric_value(KatLanParser.Numeric_valueContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KatLanParser#extends}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExtends(KatLanParser.ExtendsContext ctx);
 }

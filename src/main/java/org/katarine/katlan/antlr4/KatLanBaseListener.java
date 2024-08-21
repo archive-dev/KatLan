@@ -65,13 +65,13 @@ public class KatLanBaseListener implements KatLanListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterImportMethod(KatLanParser.ImportMethodContext ctx) { }
+	@Override public void enterImportStatic(KatLanParser.ImportStaticContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitImportMethod(KatLanParser.ImportMethodContext ctx) { }
+	@Override public void exitImportStatic(KatLanParser.ImportStaticContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -972,6 +972,18 @@ public class KatLanBaseListener implements KatLanListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitNumeric_value(KatLanParser.Numeric_valueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExtends(KatLanParser.ExtendsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExtends(KatLanParser.ExtendsContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
