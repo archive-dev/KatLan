@@ -3,17 +3,17 @@ grammar KatLan;
 class: ENDLINE* package? importBlock? (classDef | interfaceDef | unnamedClassDef | annotationDef) ENDLINE*;
 
 package: 'package' name ENDLINE+;
-importBlock: (importStatement | importMethod)+;
-importStatement: 'import' name ('as' name)? ENDLINE+;
-importMethod: 'import' name '()' ('as' name)? ENDLINE+;
+importBlock: ((importStatement | importStatic) ENDLINE*)+;
+importStatement: 'import' name ('as' name)?;
+importStatic: 'import static' name ('as' name)?;
 
-unnamedClassDef: packageBlock? ENDLINE* (EXTENDS name (',' name)* ENDLINE*)? ('{' ENDLINE* classBlock? ENDLINE* '}')? ENDLINE* packageBlock?;
+unnamedClassDef: packageBlock? ENDLINE* (extends name (',' name)* ENDLINE*)? ('{' ENDLINE* classBlock? ENDLINE* '}')? ENDLINE* packageBlock?;
 
-classDef: annotationCall* modifier? access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (EXTENDS name (',' name)*)?
+classDef: annotationCall* modifier? access ((ABSTRACT_KEYWORD? CLASS_KEYWORD) | ENUM_KEYWORD) name (extends name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
-interfaceDef: annotationCall* modifier? access INTERFACE_KEYWORD name (EXTENDS name (',' name)*)?
+interfaceDef: annotationCall* modifier? access INTERFACE_KEYWORD name (extends name (',' name)*)?
         '{' ENDLINE* classBlock? ENDLINE* '}';
-annotationDef: annotationCall* modifier? access ANNOTATION_KEYWORD name (EXTENDS name (',' name)*)?
+annotationDef: annotationCall* modifier? access ANNOTATION_KEYWORD name (extends name (',' name)*)?
         '{' ENDLINE* annotationClassBlock ENDLINE* '}';
 
 packageBlock: (
@@ -58,7 +58,7 @@ bool: TRUE | FALSE;
 genericTypeName: name | '?'; //todo
 genericDef: ('<' genericTypeUse (',' genericTypeUse)* '>');
 genericTypeUse: genericTypeName genericExtendsStatement?;
-genericExtendsStatement: EXTENDS anyType;
+genericExtendsStatement: (extends | ':') anyType;
 
 varAssignment: annotationCall* (varAccess '=' value) | incrExpression;
 
@@ -66,7 +66,7 @@ varAccess : annotationCall* NAME0 ('.' varAccess)?;
 arrayAccess: varAccess arrayAccess0+;
 arrayAccess0: ('[' arithmeticExpression ']');
 
-methodDef: annotationCall* modifier? access methodModifier 'def' name '(' parameters? ')' COLON type ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
+methodDef: annotationCall* modifier? access methodModifier 'def' name genericDef? '(' parameters? ')' COLON type ENDLINE* (('{' ENDLINE* block ENDLINE* '}') | lineBlock);
 constructorDef: annotationCall* modifier? access 'new' name '(' parameters? ')' '{' ENDLINE* block ENDLINE* '}';
 operatorOverDef: annotationCall* OP_OV_MOD operator '(' parameter ')' '{' ENDLINE* block ENDLINE* '}';
 
@@ -178,6 +178,8 @@ dot_name  : NAME0 ('.' NAME0)+ ;
 
 
 numeric_value: FLOAT_VAL | INT_VAL ;
+
+extends: EXTENDS | ':';
 
 AS_KEYWORD     : 'as'    ;
 FOR_KEYWORD    : 'for'   ;
