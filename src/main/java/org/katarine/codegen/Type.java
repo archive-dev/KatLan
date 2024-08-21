@@ -20,6 +20,7 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
     public static final PrimitiveType VOID    = new PrimitiveType(void.class);
 
     public static final Type OBJECT = new Type(Object.class);
+    public static final Type STRING = new Type(String.class);
 
     /**
      * Provides a way to use type names (such as {@code org.example.Example}) to create {@link Type} objects.
