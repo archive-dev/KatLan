@@ -3,6 +3,7 @@ package org.katarine.katlan.compiler;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.katarine.codegen.Method;
 import org.katarine.codegen.Type;
 import org.katarine.katlan.antlr4.KatLanLexer;
 import org.katarine.katlan.antlr4.KatLanParser;
@@ -10,7 +11,9 @@ import org.katarine.katlan.compiler.visitors.MethodImportsVisitor;
 import org.katarine.katlan.compiler.visitors.TypeImportsVisitor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Compiler {
     public final HashMap<String, Type> typeImports = new HashMap<>();
@@ -31,6 +34,7 @@ public class Compiler {
 
         methodImports.put("println", "System.out.println");
     }
+    public final List<Method> methods = new ArrayList<>();
 
     public void compile(String fileName) throws IOException {
         CharStream cs = CharStreams.fromFileName(fileName);
