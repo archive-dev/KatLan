@@ -1,6 +1,8 @@
 // Generated from C:/Users/Egor/Documents/Java/gdx/KatLan/src/main/resources/KatLan.g4 by ANTLR 4.13.1
 package org.katarine.katlan.antlr4;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
+import org.katarine.codegen.ClassGenerator;
+import org.katarine.katlan.compiler.Compiler;
 
 /**
  * This class provides an empty implementation of {@link KatLanVisitor},
@@ -12,6 +14,14 @@ import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
  */
 @SuppressWarnings("CheckReturnValue")
 public class KatLanBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements KatLanVisitor<T> {
+	protected final Compiler compiler;
+	protected final ClassGenerator cg;
+
+	public KatLanBaseVisitor(Compiler compiler, ClassGenerator cg) {
+		this.compiler = compiler;
+		this.cg = cg;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
