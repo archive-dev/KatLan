@@ -191,6 +191,49 @@ public class Variable implements Caller {
         return ret;
     }
 
+    public Variable xor(int other) {
+        LOAD();
+        if (!type.equals(Type.INT) || !type.equals(Type.BOOLEAN))
+            method.L2I();
+        method.LDC(other);
+        method.IXOR();
+        STORE();
+
+        return this;
+    }
+
+    public Variable xor(long other) {
+        LOAD();
+        if (!type.equals(Type.LONG))
+            method.I2L();
+        method.LDC(other);
+        method.LXOR();
+        STORE();
+
+        return this;
+    }
+
+    public Variable xor(Variable other) {
+        LOAD();
+        other.LOAD();
+        if (!type.equals(other.type)) {
+            if (!other.type.equals(type) && type.equals(Type.LONG)) {
+                method.I2L();
+            } else {
+                method.L2I();
+            }
+        }
+
+        if (type.equals(Type.LONG)) {
+            method.LXOR();
+        } else {
+            method.IXOR();
+        }
+        STORE();
+
+        return this;
+    }
+
     public Type getType() {
         return type;
     }
