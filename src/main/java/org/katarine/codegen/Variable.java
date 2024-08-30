@@ -191,33 +191,56 @@ public class Variable implements Caller {
         return ret;
     }
 
+    public Variable xor(boolean other) {
+        return xor(other ? 1 : 0);
+    }
+
+    public Variable xor(byte other) {
+        return xor(((int) other));
+    }
+
+    public Variable xor(short other) {
+        return xor(((int) other));
+    }
+
+    /**
+     * Loads this
+     * and given {@code Variable}s onto stack and invokes XOR instruction
+     * saving the value to this {@code Variable}
+     * @param other other value.
+     * @return this {@code Variable}
+     */
     public Variable xor(int other) {
-        LOAD();
-        if (!type.equals(Type.INT) || !type.equals(Type.BOOLEAN))
-            method.L2I();
-        method.LDC(other);
-        method.IXOR();
-        STORE();
-
-        return this;
+        return handleIntMath(other, Opcodes.IXOR);
     }
 
+    /**
+     * Loads this
+     * and given {@code Variable}s onto stack and invokes XOR instruction
+     * saving the value to this {@code Variable}
+     * @param other other value.
+     * @return this {@code Variable}
+     */
     public Variable xor(long other) {
-        LOAD();
-        if (!type.equals(Type.LONG))
-            method.I2L();
-        method.LDC(other);
-        method.LXOR();
-        STORE();
-
-        return this;
+        return handleIntMath(other, Opcodes.LXOR);
     }
 
+    /**
+     * Loads this
+     * and given {@code Variable}s onto stack and invokes XOR instruction
+     * saving the value to this {@code Variable}
+     * @param other other value.
+     * Must have an integer-type (
+     * {@code
+     * other.getType().isPrimitive() && ((Type.PrimitiveType)other.getType()).isIntType()
+     * })
+     * @return this {@code Variable}
+     */
     public Variable xor(Variable other) {
         LOAD();
         other.LOAD();
         if (!type.equals(other.type)) {
-            if (!other.type.equals(type) && type.equals(Type.LONG)) {
+            if (type.equals(Type.LONG)) {
                 method.I2L();
             } else {
                 method.L2I();
@@ -229,6 +252,29 @@ public class Variable implements Caller {
         } else {
             method.IXOR();
         }
+        STORE();
+
+        return this;
+    }
+
+    private Variable handleIntMath(long other, int code) {
+        LOAD();
+        if (((Type.PrimitiveType) type).isIntType())
+            method.I2L();
+        method.LDC(other);
+        method.addInsn(mv -> mv.visitInsn(code));
+        STORE();
+
+        return this;
+    }
+
+    private Variable handleIntMath(int other, int code) {
+        if (!type.isPrimitive()) throw new IllegalStateException();
+        LOAD();
+        if (!((Type.PrimitiveType) type).isIntType())
+            method.L2I();
+        method.LDC(other);
+        method.addInsn(mv -> mv.visitInsn(code));
         STORE();
 
         return this;
