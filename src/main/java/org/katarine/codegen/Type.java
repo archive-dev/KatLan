@@ -120,6 +120,13 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
             }
             throw new IllegalArgumentException();
         }
+
+        public boolean isIntType() {
+            if (this.equals(INT) || this.equals(BYTE) || this.equals(SHORT) || this.equals(BOOLEAN) || this.equals(CHAR)) {
+                return true;
+            }
+            return false;
+        }
     }
 
     private final String descriptor;
