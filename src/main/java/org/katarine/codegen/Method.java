@@ -6,7 +6,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.lang.classfile.Opcode;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
