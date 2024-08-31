@@ -191,6 +191,66 @@ public class Variable implements Caller {
         return ret;
     }
 
+    /**
+     * Performs a logical NOT operation on the current Variable.
+     * Throws an IllegalStateException if the Variable is not of primitive type or not a boolean type.
+     * Uses the 'ifElse' method of the associated Method instance to set the Variable to 0 if it is true,
+     * and to 1 if it is false.
+     *
+     * @return The current Variable instance after the logical NOT operation
+     */
+    public Variable not() {
+        if (!type.isPrimitive()) throw new IllegalStateException();
+        if (!type.equals(Type.BOOLEAN)) throw new IllegalStateException();
+
+        method.ifElse(this,
+            () -> set(0),
+            () -> set(1)
+        );
+
+        return this;
+    }
+
+    public Variable or(boolean other) {
+        return or(other ? 1 : 0);
+    }
+
+    public Variable or(byte other) {
+        return or(((int) other));
+    }
+
+    public Variable or(short other) {
+        return or(((int) other));
+    }
+
+    public Variable or(int other) {
+        return handleIntMath(other, Opcodes.IOR);
+    }
+
+    public Variable or(long other) {
+        return handleIntMath(other, Opcodes.LOR);
+    }
+
+    public Variable and(boolean other) {
+        return and(other ? 1 : 0);
+    }
+
+    public Variable and(byte other) {
+        return and(((int) other));
+    }
+
+    public Variable and(short other) {
+        return and(((int) other));
+    }
+
+    public Variable and(int other) {
+        return handleIntMath(other, Opcodes.IAND);
+    }
+
+    public Variable and(long other) {
+        return handleIntMath(other, Opcodes.LAND);
+    }
+
     public Variable xor(boolean other) {
         return xor(other ? 1 : 0);
     }
@@ -272,7 +332,7 @@ public class Variable implements Caller {
         if (!type.isPrimitive()) throw new IllegalStateException();
         LOAD();
         if (!((Type.PrimitiveType) type).isIntType())
-            method.L2I();
+            method.I2L();
         method.LDC(other);
         method.addInsn(mv -> mv.visitInsn(code));
         STORE();
