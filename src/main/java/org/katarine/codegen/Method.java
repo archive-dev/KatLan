@@ -6,6 +6,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import java.lang.classfile.Opcode;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -281,6 +282,15 @@ public class Method implements Member, Accessible, Caller {
         return this;
     }
 
+    /**
+     * Executes a conditional statement based on the value of the provided Variable.
+     * If the Variable is false (0), the 'if_' code block is executed; otherwise, the 'else_' code block is executed.
+     *
+     * @param v The Variable to evaluate for the conditional statement
+     * @param if_ The code block to execute if the Variable is false (0)
+     * @param else_ The code block to execute if the Variable is true (non-zero)
+     * @return The current Method instance
+     */
     public Method ifElse(Variable v, Runnable if_, Runnable else_) {
         Label _else = new Label();
         Label ifEnd = new Label();
@@ -298,6 +308,57 @@ public class Method implements Member, Accessible, Caller {
         addInsn(mv -> mv.visitLabel(ifEnd));
 
         return this;
+    }
+
+    public Variable xor(Variable left, Variable right) {
+        return intMath(left, right, Opcodes.IXOR, Opcodes.LXOR);
+    }
+
+    public Variable and(Variable left, Variable right) {
+        return intMath(left, right, Opcodes.IAND, Opcodes.LAND);
+    }
+
+    public Variable or(Variable left, Variable right) {
+        return intMath(left, right, Opcodes.IOR, Opcodes.LOR);
+    }
+
+    private Variable intMath(Variable left, Variable right, int iCode, int lCode) {
+        Type leftType, rightType;
+        if (!(leftType = left.getType()).isPrimitive() | !(rightType = right.getType()).isPrimitive())
+            throw new IllegalStateException();
+
+        if (!((Type.PrimitiveType) leftType).isIntType() || !((Type.PrimitiveType) rightType).isIntType())
+            throw new IllegalStateException();
+
+        Type returnVarType;
+        int compare = ((Type.PrimitiveType) leftType).compareTo((Type.PrimitiveType) rightType);
+        if (compare < 0)
+            returnVarType = rightType;
+        else returnVarType = leftType;
+
+        left.LOAD();
+        if (returnVarType!=leftType) {
+            if (returnVarType.equals(Type.LONG))
+                I2L();
+            else {
+                L2I();
+            }
+        }
+        right.LOAD();
+        if (returnVarType!=rightType) {
+            if (returnVarType.equals(Type.LONG))
+                I2L();
+            else {
+                L2I();
+            }
+        }
+        if (returnVarType.equals(Type.LONG))
+            addInsn(mv -> mv.visitInsn(lCode));
+        else addInsn(mv -> mv.visitInsn(iCode));
+        var ret = var(returnVarType, "XOR_result_"+left.hashCode()+right.hashCode());
+        ret.STORE();
+
+        return ret;
     }
 
     public String getDescriptor() {
