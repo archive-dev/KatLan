@@ -2,6 +2,8 @@ package org.katarine.codegen;
 
 import org.objectweb.asm.Opcodes;
 
+import java.util.HashMap;
+
 /**
  * Provides a convenient way to use {@link String}s as types descriptors
  * and {@link Signature} objects as string signatures.
@@ -48,7 +50,20 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
         }
     }
 
-    public static final class PrimitiveType extends Type {
+    public static final class PrimitiveType extends Type implements Comparable<PrimitiveType> {
+        private static HashMap<PrimitiveType, Integer> sizes = new HashMap<>();
+        static {
+            sizes.put(VOID, 0);
+            sizes.put(BYTE, 1);
+            sizes.put(BOOLEAN, 1);
+            sizes.put(SHORT, 2);
+            sizes.put(INT, 4);
+            sizes.put(FLOAT, 4);
+            sizes.put(CHAR, 4);
+            sizes.put(LONG, 8);
+            sizes.put(DOUBLE, 8);
+        }
+
         PrimitiveType(Class<?> clazz) {
             if (!clazz.isPrimitive()) throw new IllegalArgumentException();
             super(clazz);
@@ -122,10 +137,12 @@ public sealed class Type permits Type.PrimitiveType, Type.SimpleType {
         }
 
         public boolean isIntType() {
-            if (this.equals(INT) || this.equals(BYTE) || this.equals(SHORT) || this.equals(BOOLEAN) || this.equals(CHAR)) {
-                return true;
-            }
-            return false;
+            return this.equals(INT) || this.equals(BYTE) || this.equals(SHORT) || this.equals(BOOLEAN) || this.equals(CHAR);
+        }
+
+        @Override
+        public int compareTo(PrimitiveType o) {
+            return Integer.compare(sizes.get(this), sizes.get(o));
         }
     }
 
