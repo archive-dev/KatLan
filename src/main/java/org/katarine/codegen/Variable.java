@@ -108,6 +108,14 @@ public class Variable implements Caller {
         return this;
     }
 
+    /**
+     * Retrieves a field from the current Variable based on the provided parameters.
+     *
+     * @param isStatic Indicates if the field is static
+     * @param fieldName The name of the field to retrieve
+     * @param fieldType The type of the field
+     * @return The Variable representing the retrieved field
+     */
     public Variable field(boolean isStatic, String fieldName, Type fieldType) {
         Variable var = method.var(fieldType, fieldName);
 
@@ -352,7 +360,7 @@ public class Variable implements Caller {
         return ownerScope;
     }
 
-    int getIndex() {
+    public int getIndex() {
         return index;
     }
 
@@ -360,15 +368,15 @@ public class Variable implements Caller {
         return method;
     }
 
-    void LOAD() {
+    public void LOAD() {
         method.addInsn(mv -> mv.visitVarInsn(getType().getLoadCode(), getIndex()));
     }
 
-    void STORE() {
+    public void STORE() {
         method.addInsn(mv -> mv.visitVarInsn(getType().getStoreCode(), getIndex()));
     }
 
-    void CMPNE(Label label) {
+    public void CMPNE(Label label) {
         if (!type.isPrimitive()) {
             method.IF_ACMPEQ(label);
             return;
@@ -392,7 +400,7 @@ public class Variable implements Caller {
         }
     }
 
-    void CMPEQ(Label label) {
+    public void CMPEQ(Label label) {
         if (!type.isPrimitive()) {
             method.IF_ACMPNE(label);
             return;
