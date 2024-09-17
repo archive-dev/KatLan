@@ -1,13 +1,11 @@
 package org.katarine.katlan.compiler.visitors;
 
-import org.katarine.codegen.ClassGenerator;
-import org.katarine.codegen.Method;
-import org.katarine.codegen.Type;
-import org.katarine.codegen.Variable;
+import org.katarine.codegen.*;
 import org.katarine.katlan.antlr4.KatLanBaseVisitor;
 import org.katarine.katlan.antlr4.KatLanParser;
 import org.katarine.katlan.compiler.Compiler;
 import org.katarine.katlan.lib.struct.Either;
+import org.katarine.katlan.lib.struct.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +13,7 @@ import java.util.List;
 
 public class MethodVisitor extends KatLanBaseVisitor<Either<Variable, List<Variable>>> {
     private final HashMap<String, Variable> vars = new HashMap<>();
+    private final HashMap<String, Field> fields = new HashMap<>();
 
     private final Method method;
 
@@ -26,6 +25,12 @@ public class MethodVisitor extends KatLanBaseVisitor<Either<Variable, List<Varia
     private Variable createVariable(Type type, String name) {
         var ret = vars.put(name, method.var(type, name));
         return ret;
+    }
+
+    private Pair<Variable, Boolean> getVariable(String name) {
+        if (vars.containsKey(name)) return new Pair<>(vars.get(name), false);
+        if (fields.containsKey(name)) return new Pair<>(fields.get(name), fields.get(name).isStatic());
+        return new Pair<>(method.var(compiler.typeImports.get(name), name), true);
     }
 
     @Override
@@ -145,8 +150,52 @@ public class MethodVisitor extends KatLanBaseVisitor<Either<Variable, List<Varia
     public Either<Variable, List<Variable>> visitLogicalNot(KatLanParser.LogicalNotContext ctx) {
         var v = visitPrimaryExpresion(ctx.primaryExpresion()).left();
 
-        v.not(); // заебись апи
+        v.not();
 
         return new Either.Left<>(v);
     }
+
+    @Override
+    public Either<Variable, List<Variable>> visitPrimaryExpresion(KatLanParser.PrimaryExpresionContext ctx) {
+        if (ctx.bool()!=null) return visitBool(ctx.bool());
+
+
+        return super.visitPrimaryExpresion(ctx);
+    }
+
+    @Override
+    public Either<Variable, List<Variable>> visitBool(KatLanParser.BoolContext ctx) {
+        var ret = method.var(Type.BOOLEAN, ctx.getText());
+        if (ctx.TRUE() != null) ret.set(1);
+        else ret.set(0);
+        return new Either.Left<>(ret);
+    }
+
+    @Override
+    public Either<Variable, List<Variable>> visitMethodCall0(KatLanParser.MethodCall0Context ctx) {
+        return super.visitMethodCall0(ctx);
+    }
+
+    @Override
+    public Either<Variable, List<Variable>> visitMethodCall(KatLanParser.MethodCallContext ctx) {
+        return super.visitMethodCall(ctx);
+    }
+
+
+//    TODO:
+//    @Override
+//    public Either<Variable, List<Variable>> visitVarAccess(KatLanParser.VarAccessContext ctx) {
+//        return visitVarAccess(ctx, null);
+//    }
+
+//    private Either<Variable, List<Variable>> visitVarAccess(KatLanParser.VarAccessContext ctx, Variable var) {
+//        var pair = getVariable(ctx.NAME0().getText());
+//        if (var == null) {
+//            pair = getVariable(ctx.NAME0().getText());
+//            var = pair.getA();
+//        }
+//        var field = var.field(pair.getB(), ctx.NAME0().getText(), var.getType());
+//
+//        if (ctx.varAccess()!=null) return visitVarAccess(ctx.varAccess(), field);
+//    }
 }
